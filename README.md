@@ -51,13 +51,13 @@ Renovate:
 
 ```mermaid
 flowchart LR
-    kit["<b>platform-kit</b><br/>#Service schema<br/>devenv module"]
+    kit["<b>platform-kit</b><br/>#App schema<br/>devenv module"]
     wf["<b>github-workflows</b><br/>build, sign, release,<br/>promote"]
     gh["<b>.github</b><br/>Renovate preset"]
     tf["<b>platform-terraform</b><br/>repository, environments,<br/>OpenBao roles"]
-    tpl["<b>rust-service-template</b><br/>starting point"]
+    tpl["<b>rust-app-template</b><br/>starting point"]
 
-    svc["<b>a service repository</b><br/>code + deploy.cue"]
+    svc["<b>an app repository</b><br/>code + deploy.cue"]
 
     tpl -- "created from" --> svc
     kit --> svc
@@ -74,12 +74,12 @@ flowchart LR
 | [`.github`](dot-github.md) | platform | Org profile, default community health files, shared Renovate preset. |
 | [`platform-terraform`](platform-terraform.md) | platform | OpenTofu per provider: `github/` (org, repositories, rulesets, teams), `openbao/` (auth, policies, roles). Local state, applied by the owner. |
 | [`github-workflows`](github-workflows.md) | platform | Reusable workflows: build, sign, render, publish, PR to `gitops`, promote, `gitops` checks. Their identity is the release trust anchor. |
-| [`platform-kit`](platform-kit.md) | platform | The paved road: CUE module with `#Service` and environment definitions, devenv module for Rust services. |
+| [`platform-kit`](platform-kit.md) | platform | The paved road: CUE module with `#App` and environment definitions, devenv module for Rust apps. |
 | [`platform-components`](platform-components.md) | platform | Cluster definitions (Talos), platform components, Kyverno policies, team onboarding. Releases one signed artifact per component set and cluster. |
-| [`gitops`](gitops.md) | platform; teams own their version files | What runs where: digests per cluster set and per service environment. Rendered to Flux and Argo CD objects, published as a signed OCI artifact. |
-| [`rust-service-template`](rust-service-template.md) | platform | GitHub template for a new service. |
-| [`notes-api`](notes-api.md) | notes | Example service: REST API with Postgres. |
-| [`notes-stats`](notes-stats.md) | notes | Example service: calls `notes-api` with a projected ServiceAccount token. |
+| [`gitops`](gitops.md) | platform; teams own their version files | What runs where: digests per cluster set and per app environment. Rendered to Flux and Argo CD objects, published as a signed OCI artifact. |
+| [`rust-app-template`](rust-app-template.md) | platform | GitHub template for a new app. |
+| [`notes-api`](notes-api.md) | notes | Example app: REST API with Postgres. |
+| [`notes-stats`](notes-stats.md) | notes | Example app: calls `notes-api` with a projected ServiceAccount token. |
 
 ## Stack
 

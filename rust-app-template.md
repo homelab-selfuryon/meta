@@ -1,9 +1,9 @@
-# rust-service-template
+# rust-app-template
 
-**Owner:** platform · GitHub: `homelab-selfuryon/rust-service-template` (template repository)
+**Owner:** platform · GitHub: `homelab-selfuryon/rust-app-template` (template repository)
 · Status: **scaffolded** (2026-11-07)
 
-The starting point for a Rust service. Deliberately thin: everything that must evolve comes from
+The starting point for a Rust app. Deliberately thin: everything that must evolve comes from
 [platform-kit](platform-kit.md) (CUE module, devenv module) and [github-workflows](github-workflows.md),
 pinned and bumped by Renovate. After "Use this template" the code belongs to the team.
 
@@ -13,4 +13,4 @@ ServiceAccount tokens for service-to-service calls; `devenv.yaml` importing the 
 `deploy/deploy.cue`; thin workflow callers (`ci`, `release-please`, `release`, `promote`);
 `CODEOWNERS`; Renovate config extending the org preset.
 
-First services made from it: [notes-api](notes-api.md), [notes-stats](notes-stats.md).
+First apps made from it: [notes-api](notes-api.md), [notes-stats](notes-stats.md).

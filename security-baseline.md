@@ -18,7 +18,7 @@ these decide it.
    repository can't sign something the platform accepts by itself.
 5. **Deny by default** — network (default-deny per namespace, host firewall), RBAC, admission,
    egress. Every allow is explicit and lives next to its owner.
-6. **The paved road is the secure road.** `#Service` defaults are the hardened ones; an exception is
+6. **The paved road is the secure road.** `#App` defaults are the hardened ones; an exception is
    explicit in `deploy.cue` and admission decides whether it is allowed.
 7. **Schema is convenience, admission is the fence.** Kyverno and delivery impersonation enforce what
    the CUE schema only suggests.
@@ -38,9 +38,9 @@ these decide it.
 | --- | --- | --- |
 | GitHub | rulesets, signed commits, OIDC only, zizmor, actions pinned by SHA | [platform-terraform](platform-terraform.md), [github-workflows](github-workflows.md) |
 | Supply chain | distroless images from a Containerfile (bases pinned by digest), SBOM, provenance, cosign keyless, digests everywhere | [github-workflows](github-workflows.md), [platform-kit](platform-kit.md) |
-| Workloads | PSA restricted, read-only rootfs, drop ALL, no token automount, image by digest | `#Service` + Kyverno |
+| Workloads | PSA restricted, read-only rootfs, drop ALL, no token automount, image by digest | `#App` + Kyverno |
 | Network | default-deny ingress and egress per namespace, Cilium host firewall, no pod → kube-apiserver unless declared | [platform-components](platform-components.md) |
 | Delivery | platform: Flux with cosign verification, per-component ServiceAccount; tenants: Argo CD by digest with per-team impersonation | [gitops](gitops.md) |
-| Secrets | OpenBao, Kubernetes auth per service and environment, files via CSI | [platform-terraform](platform-terraform.md) |
+| Secrets | OpenBao, Kubernetes auth per app and environment, files via CSI | [platform-terraform](platform-terraform.md) |
 | Access | kube-apiserver, Talos and OpenBao APIs not public; personal identity; offline break-glass | [platform-components](platform-components.md) |
-| App code | secrets from files, `secrecy`, deny-by-default authorization, `cargo deny` | [rust-service-template](rust-service-template.md) |
+| App code | secrets from files, `secrecy`, deny-by-default authorization, `cargo deny` | [rust-app-template](rust-app-template.md) |

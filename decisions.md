@@ -37,12 +37,16 @@ stay, struck through, with the reason. How the decisions fit together end to end
 
 ### Paved road
 
-- **2026-11-07 — CUE, no per-service Helm charts, no IDP.** One platform CUE module validates and
+- **2026-11-07 — CUE, no per-app Helm charts, no IDP.** One platform CUE module validates and
   renders `deploy.cue`. Rejected at this scale: Backstage/OpenChoreo-style IDPs, KubeVela (CUE +
   GitOps gives the same without CRDs), Kratix, KusionStack, Humanitec, Kubero, Devtron. Timoni is a
   valid alternative but still 0.x.
 - **2026-11-07 — Rust only** for application code.
-- **2026-11-07 — Thin template, logic in versioned dependencies.** `rust-service-template` is copied
+- **2026-11-08 — A product team deploys an "app", not a "service".** `#App`, `app-*` workflows,
+  `apps.json`, `kind=app`, `rust-app-template`. "Service" collided with the Kubernetes `Service` the
+  schema renders and would be wrong for workers and CronJobs; `apps/` in `gitops` already used the
+  word. Renamed before the first release, while workflow names (signing identities) were still free.
+- **2026-11-07 — Thin template, logic in versioned dependencies.** `rust-app-template` is copied
   once; everything that must evolve comes as a pinned, Renovate-bumped dependency: the CUE module
   and devenv module from `platform-kit`, reusable workflows from `github-workflows`, the Renovate preset
   from `.github`. After creation the Cargo files belong to the team. No template sync tool.
@@ -51,7 +55,7 @@ stay, struck through, with the reason. How the decisions fit together end to end
   `devenv shell`. Back to the nixpkgs release once 0.18.0 is out.
 - **2026-11-08 — devenv everywhere, no Nix flakes; images from a Containerfile.** Every repository
   gets its tools from devenv (`devenv.nix`, `devenv.yaml`, `devenv.lock`); CI runs the same commands
-  through `devenv shell`, so laptops and CI use the same versions. Services import a devenv module
+  through `devenv shell`, so laptops and CI use the same versions. Apps import a devenv module
   from `platform-kit` (toolchain, treefmt, git hooks, local Postgres). We ship OCI images to
   Kubernetes and need no Nix packages, so images are built from a multi-stage `Containerfile`
   (distroless runtime, base images pinned by digest, Renovate bumps them) with buildx, which also
@@ -68,12 +72,12 @@ stay, struck through, with the reason. How the decisions fit together end to end
 
 - **2026-11-07 — Source repositories release, `gitops` only pins.** Each source repository renders
   and publishes its own signed, content-addressed OCI manifest artifact and keeps its own input lock
-  (`Cargo.lock` + `cue.mod` in a service, `pins.json` per cluster in `platform-components`). Its CI
+  (`Cargo.lock` + `cue.mod` in an app, `pins.json` per cluster in `platform-components`). Its CI
   opens a PR to `gitops` that moves one digest. `gitops` holds the output locks — what runs where.
   Rollback = revert in `gitops`.
-  - A service artifact contains the render for every environment; the environment is chosen by
+  - An app artifact contains the render for every environment; the environment is chosen by
     path. Promotion moves the same digest.
-  - Cost accepted: a `platform-kit` change reaches an environment only when each service
+  - Cost accepted: a `platform-kit` change reaches an environment only when each app
     re-releases (Renovate bumps it everywhere).
   - ~~Input and output locks both in `gitops`, render in `gitops` CI~~ — two steps per change and
     render logic split from its source. ~~Rendered YAML committed to git~~. ~~`gitops` polls GHCR
@@ -99,24 +103,24 @@ stay, struck through, with the reason. How the decisions fit together end to end
   - `prod`: a person runs the `promote` workflow **on the tag** → PR moving prod to that version's
     digest → team CODEOWNERS approval.
   - Tags come from release-please (changelog and semver from Conventional Commits).
-- **2026-11-07 — GitHub Environments `staging` and `prod` in each service repository, for
+- **2026-11-07 — GitHub Environments `staging` and `prod` in each app repository, for
   identity, not as a gate.** Deployment rule "tags `v*` only"; the OIDC `sub` carries
   `environment:<env>`, so octo-sts issues the `gitops` token only to that workflow and environment.
   No required reviewers: the gate is the `gitops` PR.
-- **2026-11-08 — Onboarding a service: a PR to `platform-terraform`, then self-registration.**
-  `services.json` creates the repository from the template with its properties, environments,
+- **2026-11-08 — Onboarding an app: a PR to `platform-terraform`, then self-registration.**
+  `apps.json` creates the repository from the template with its properties, environments,
   rulesets and OpenBao roles; the template's `register.yaml` then opens the `gitops` registration PR,
   which the platform approves. Rejected: an always-on onboarding service with a GitHub App
   (that is an IDP), creating repositories by hand (drift, forgotten environments).
 - **2026-11-08 — Custom properties in the OIDC token:** `owner-team` and `kind`
-  (`service`/`platform`/`docs`), so trust policies check what a repository is, not only its name.
+  (`app`/`platform`/`docs`), so trust policies check what a repository is, not only its name.
 - **2026-11-07 — Cross-repository PRs through octo-sts** (GitHub OIDC → short-lived token for
   `gitops`), trust policies in `gitops/.github/chainguard/`. No stored keys or PATs.
 - **2026-11-08 — Public octo-sts, accepted risk.** Its App has broad permissions (including
   organization administration write) and a bot identity shared with every other user; a compromise
   of the service could act on our installed repositories. Acceptable for a homelab showcase: rulesets
   still block pushes to `main` (the App is no bypass actor and can't edit repository rulesets),
-  releases need our own workflow identity and a tag on `main`, and `gitops-verify` checks every
+  releases need our own workflow identity and a tag on `main`, and the gitops verify checks every
   artifact. Considered: ~~self-hosted octo-sts (Cloud Run + KMS)~~ — the right next step for a real
   org, not worth running here; ~~own App + key in an environment secret~~ — long-lived bearer key;
   ~~Renovate as the promoter~~ — promotion on Renovate's schedule; ~~Kargo~~ — git credential in the
@@ -155,8 +159,8 @@ stay, struck through, with the reason. How the decisions fit together end to end
   target cluster currently runs.
 - **2026-11-07 — Ingress: Envoy Gateway** (Gateway API) rather than Cilium's Gateway: JWT/OIDC, rate
   limits, `BackendTrafficPolicy`. One Gateway per environment in `envoy-gateway-system`, merged
-  (`mergeGateways`). Teams only write `HTTPRoute` through `#Service`.
-- **2026-11-07 — Databases: CloudNativePG**, one cluster per service per environment.
+  (`mergeGateways`). Teams only write `HTTPRoute` through `#App`.
+- **2026-11-07 — Databases: CloudNativePG**, one cluster per app per environment.
 
 ### Secrets
 
@@ -164,8 +168,8 @@ stay, struck through, with the reason. How the decisions fit together end to end
   - Applications get secrets as **files** through the Secrets Store CSI driver with the OpenBao
     provider, authenticated by their own ServiceAccount (Kubernetes auth, in-cluster TokenReview).
     No Kubernetes Secret is created for tenant secrets.
-  - OpenBao layout: KV v2 at `kv/`, paths `kv/<team>/<env>/<service>/<key>`; one Kubernetes auth
-    role per service and environment, bound to that service's SA in `<team>-<env>`, with a policy
+  - OpenBao layout: KV v2 at `kv/`, paths `kv/<team>/<env>/<app>/<key>`; one Kubernetes auth
+    role per app and environment, bound to that app's SA in `<team>-<env>`, with a policy
     for its own path only. Platform secrets under `kv/platform/<cluster>/<component>/`.
   - Platform components that insist on a Kubernetes Secret (DNS provider token for external-dns and
     cert-manager) get one through the CSI driver's `secretObjects` sync — allowed only in
@@ -208,7 +212,7 @@ stay, struck through, with the reason. How the decisions fit together end to end
 
 ### Paved road
 
-- What `#Service` covers beyond v0 (`port`, `size`, `public`, `database`, `secrets`, `network`,
+- What `#App` covers beyond v0 (`port`, `size`, `public`, `database`, `secrets`, `network`,
   `env`): workers, CronJobs, queues.
 
 ### Platform

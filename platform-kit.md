@@ -9,10 +9,16 @@ The paved road product teams consume:
    to Kubernetes objects with hardened defaults. Package `env`: environment definitions (namespace
    pattern, hostnames, replicas and sizes per environment). Interface in
    [delivery.md](delivery.md#app-contract-deploycue).
-2. **devenv module** (`devenv/`), imported from an app's `devenv.yaml`: Rust toolchain from
-   `rust-toolchain.toml`, cue, cargo-deny, treefmt (rustfmt, nixfmt, `cue fmt`), git hooks, optional local
-   Postgres, and an option to switch CUE to an upstream pre-release binary. Fixes reach every app
-   by bumping the input instead of re-templating.
+2. **devenv modules** (`devenv/`), imported from `devenv.yaml` of every repository, in three layers:
+   - `base.nix` — git hooks (ripsecrets, detect-private-keys, treefmt), treefmt (nixfmt, prettier,
+     taplo), workflow linters. Every repository.
+   - `cue.nix` — base + CUE (option for an upstream pre-release binary), `CUE_REGISTRY`, `cue fmt`.
+     `platform-components`, `gitops`, `github-workflows`.
+   - `rust-app.nix` — cue + Rust toolchain from `rust-toolchain.toml`, cargo-deny, clippy, optional
+     local Postgres, the app's `devenv test`. Apps.
+
+   A repository's own `devenv.nix` holds only its own tools. Changes reach everyone by bumping the
+   tag in `devenv.yaml` (Renovate) instead of copying.
 
 Semver; a breaking schema change bumps the major (`@v1`).
 

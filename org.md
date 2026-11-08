@@ -5,12 +5,13 @@
 
 ## State (`gh api orgs/homelab-selfuryon`)
 
-| Setting | Now (2026-11-07) | Target |
-| --- | --- | --- |
-| Repositories | created empty 2026-11-07 | see [README](README.md) |
-| 2FA required | **off** — not settable via REST API, enable in UI: Settings → Authentication security | on |
-| Base repository permission | `none` (set 2026-11-07) | `none` |
-| Members can create repositories | off (set 2026-11-07); owners still can. Free plan rejects the "private only" policy, so it is all or nothing | off (repos only via `platform-terraform`) |
+| Setting                         | Now (2026-11-07)                                                                                             | Target                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| Repositories                    | created empty 2026-11-07                                                                                     | see [README](README.md)                                  |
+| 2FA required                    | **off** — not settable via REST API, enable in UI: Settings → Authentication security                        | on                                                       |
+| Base repository permission      | `none` (set 2026-11-07)                                                                                      | `none`                                                   |
+| Members can create repositories | off (set 2026-11-07); owners still can. Free plan rejects the "private only" policy, so it is all or nothing | off (repos only via `platform-terraform`)                |
+| Package creation: Public        | on (set by hand 2026-11-08, Settings → Packages; not in the API or the Terraform provider)                   | on: every artifact the clusters pull is a public package |
 
 ## Why a separate org
 

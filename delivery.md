@@ -6,19 +6,19 @@ them in the same change — this page is the contract the repositories are built
 
 ## Names
 
-| Thing | Value |
-| --- | --- |
-| GitHub org | `homelab-selfuryon` |
-| Registry | `ghcr.io/homelab-selfuryon` |
-| CUE registry | `CUE_REGISTRY='inline:moduleRegistries: "github.com/homelab-selfuryon": {registry: "ghcr.io/homelab-selfuryon/cue", stripPrefix: true}'` |
-| Label / annotation prefix | `homelab-selfuryon.github.io/` (`team`, `env`, `managed-by`, `component`) |
-| Cluster | `alpha-01` (Talos, one node). Design allows more. |
-| Domain | `homelab.example` — placeholder until a real domain is chosen |
-| Teams | `platform`, `notes` (GitHub teams of the same name) |
-| Environments | `preview`, `staging`, `prod` |
-| Tenant namespaces | `<team>-staging`, `<team>-prod`, `<team>-pr-<n>` (preview) |
-| Hostnames | prod `<app>.<domain>`, staging `<app>.staging.<domain>`, preview `<app>-pr-<n>.preview.<domain>` |
-| Platform namespaces | `<component>-system` (`flux-system`, `cilium` is the exception: `kube-system`) |
+| Thing                     | Value                                                                                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub org                | `homelab-selfuryon`                                                                                                                      |
+| Registry                  | `ghcr.io/homelab-selfuryon`                                                                                                              |
+| CUE registry              | `CUE_REGISTRY='inline:moduleRegistries: "github.com/homelab-selfuryon": {registry: "ghcr.io/homelab-selfuryon/cue", stripPrefix: true}'` |
+| Label / annotation prefix | `homelab-selfuryon.github.io/` (`team`, `env`, `managed-by`, `component`)                                                                |
+| Cluster                   | `alpha-01` (Talos, one node). Design allows more.                                                                                        |
+| Domain                    | `homelab.example` — placeholder until a real domain is chosen                                                                            |
+| Teams                     | `platform`, `notes` (GitHub teams of the same name)                                                                                      |
+| Environments              | `preview`, `staging`, `prod`                                                                                                             |
+| Tenant namespaces         | `<team>-staging`, `<team>-prod`, `<team>-pr-<n>` (preview)                                                                               |
+| Hostnames                 | prod `<app>.<domain>`, staging `<app>.staging.<domain>`, preview `<app>-pr-<n>.preview.<domain>`                                         |
+| Platform namespaces       | `<component>-system` (`flux-system`, `cilium` is the exception: `kube-system`)                                                           |
 
 ## Artifacts
 
@@ -27,14 +27,14 @@ All OCI artifacts are pushed with `oras`, one layer of media type
 `layerSelector` and by Argo CD OCI sources), signed with cosign keyless (issuer
 `https://token.actions.githubusercontent.com`). Clusters always reference them by digest.
 
-| Artifact | Tag | Content | Signed by workflow | Source repo in the certificate |
-| --- | --- | --- | --- | --- |
-| `<app>` (image) | `<version>`, preview `pr-<n>-<sha7>` | distroless image (Containerfile), SBOM + provenance attestations | `app-release.yaml` / `app-preview.yaml` | the app |
-| `<app>/manifests` | `<version>` | `staging/manifests.yaml`, `prod/manifests.yaml` | `app-release.yaml` | the app |
-| `<app>/manifests` | `pr-<n>` | `preview/manifests.yaml` | `app-preview.yaml` | the app |
-| `platform-components/<cluster>-<set>` | content hash | `kustomizations.yaml` + `<component>/manifests.yaml` | `platform-components/.github/workflows/release.yaml` (own job, not reusable) | `platform-components` |
-| `gitops/<cluster>` | `main` + git SHA | `flux/` (set OCIRepositories + Kustomizations, `argo-apps`), `argo/` (Applications, ApplicationSets) | `gitops/.github/workflows/publish.yaml` (own job, not reusable) | `gitops` |
-| `platform-kit` (CUE module) | `v<semver>` (git tag) | `cue mod publish` of module `github.com/homelab-selfuryon/platform-kit@v0` → `ghcr.io/homelab-selfuryon/cue/platform-kit` | `platform-kit` own `release.yaml` (`GITHUB_TOKEN`, `packages: write`) | — |
+| Artifact                              | Tag                                  | Content                                                                                                                   | Signed by workflow                                                           | Source repo in the certificate |
+| ------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------ |
+| `<app>` (image)                       | `<version>`, preview `pr-<n>-<sha7>` | distroless image (Containerfile), SBOM + provenance attestations                                                          | `app-release.yaml` / `app-preview.yaml`                                      | the app                        |
+| `<app>/manifests`                     | `<version>`                          | `staging/manifests.yaml`, `prod/manifests.yaml`                                                                           | `app-release.yaml`                                                           | the app                        |
+| `<app>/manifests`                     | `pr-<n>`                             | `preview/manifests.yaml`                                                                                                  | `app-preview.yaml`                                                           | the app                        |
+| `platform-components/<cluster>-<set>` | content hash                         | `kustomizations.yaml` + `<component>/manifests.yaml`                                                                      | `platform-components/.github/workflows/release.yaml` (own job, not reusable) | `platform-components`          |
+| `gitops/<cluster>`                    | `main` + git SHA                     | `flux/` (set OCIRepositories + Kustomizations, `argo-apps`), `argo/` (Applications, ApplicationSets)                      | `gitops/.github/workflows/publish.yaml` (own job, not reusable)              | `gitops`                       |
+| `platform-kit` (CUE module)           | `v<semver>` (git tag)                | `cue mod publish` of module `github.com/homelab-selfuryon/platform-kit@v0` → `ghcr.io/homelab-selfuryon/cue/platform-kit` | `platform-kit` own `release.yaml` (`GITHUB_TOKEN`, `packages: write`)        | —                              |
 
 CUE modules have their own prefix: `CUE_REGISTRY` (an inline config with `stripPrefix`) maps the module path
 `github.com/homelab-selfuryon/<repo>` to `ghcr.io/homelab-selfuryon/cue/<repo>`, so any repository can
@@ -61,14 +61,13 @@ All GHCR packages are **public** (Argo CD and Flux pull without credentials).
 
 ## Bot tokens (octo-sts)
 
-| Thing | Value |
-| --- | --- |
-| Instance | the public octo-sts instance (Chainguard), endpoint `octo-sts.dev` (the `octo-sts/action` default) |
-| GitHub App | the public `octo-sts` App, installed on the org (selected repositories: `gitops` and the repositories whose workflows open PRs or push tags in themselves) |
-| Bot login in PRs and commits | `octo-sts[bot]`; commits are created through the API and signed by GitHub |
-| Trust policies | `.github/chainguard/<identity>.sts.yaml` in the target repository |
-| OIDC subject format | this org gets GitHub's immutable, ID-based subjects: `repo:homelab-selfuryon@353728095/<repo>@<repo_id>:ref:refs/heads/main` (or `:environment:<env>`). Policies use `subject_pattern` with the org ID pinned; a repository's own policies also pin its name, cross-repository ones in `gitops` accept any repository of the org |
-
+| Thing                        | Value                                                                                                                                                                                                                                                                                                                            |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Instance                     | the public octo-sts instance (Chainguard), endpoint `octo-sts.dev` (the `octo-sts/action` default)                                                                                                                                                                                                                               |
+| GitHub App                   | the public `octo-sts` App, installed on the org (selected repositories: `gitops` and the repositories whose workflows open PRs or push tags in themselves)                                                                                                                                                                       |
+| Bot login in PRs and commits | `octo-sts[bot]`; commits are created through the API and signed by GitHub                                                                                                                                                                                                                                                        |
+| Trust policies               | `.github/chainguard/<identity>.sts.yaml` in the target repository                                                                                                                                                                                                                                                                |
+| OIDC subject format          | this org gets GitHub's immutable, ID-based subjects: `repo:homelab-selfuryon@353728095/<repo>@<repo_id>:ref:refs/heads/main` (or `:environment:<env>`). Policies use `subject_pattern` with the org ID pinned; a repository's own policies also pin its name, cross-repository ones in `gitops` accept any repository of the org |
 
 Rendered manifests carry no `metadata.namespace` for namespaced objects; the namespace comes from the
 delivery object (Argo `destination.namespace`, Flux `targetNamespace`).
@@ -178,14 +177,14 @@ namespaces, quotas, AppProjects, deploy ServiceAccounts, RBAC for the team group
 Set artifact layout: `flux/kustomizations.yaml` (+ `flux/kustomization.yaml` listing it) and
 `components/<name>/` (each with a `kustomization.yaml`). All Flux objects live in `flux-system`.
 
-| Object | Name | ServiceAccount | Created by |
-| --- | --- | --- | --- |
-| OCIRepository for `gitops` | `gitops` | — | bootstrap |
-| Root Kustomization (path `./flux` of the gitops artifact) | `gitops` | `gitops-root` | bootstrap |
-| OCIRepository per set | `set-<set>` | — | gitops render |
-| Kustomization per set (path `./flux`, `wait: true`) | `set-<set>` | `gitops-root` | gitops render |
-| Kustomization per component (path `./components/<name>`) | `<name>` | `component-<name>`, or `flux-privileged` if `privileged: true` | set artifact |
-| Kustomization for Argo objects (path `./argo` of the gitops artifact, depends on `set-tenants`) | `argo-apps` | `argo-apps` | gitops render |
+| Object                                                                                          | Name        | ServiceAccount                                                 | Created by    |
+| ----------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------- | ------------- |
+| OCIRepository for `gitops`                                                                      | `gitops`    | —                                                              | bootstrap     |
+| Root Kustomization (path `./flux` of the gitops artifact)                                       | `gitops`    | `gitops-root`                                                  | bootstrap     |
+| OCIRepository per set                                                                           | `set-<set>` | —                                                              | gitops render |
+| Kustomization per set (path `./flux`, `wait: true`)                                             | `set-<set>` | `gitops-root`                                                  | gitops render |
+| Kustomization per component (path `./components/<name>`)                                        | `<name>`    | `component-<name>`, or `flux-privileged` if `privileged: true` | set artifact  |
+| Kustomization for Argo objects (path `./argo` of the gitops artifact, depends on `set-tenants`) | `argo-apps` | `argo-apps`                                                    | gitops render |
 
 ServiceAccounts in `flux-system`: `flux-privileged` (cluster-admin) and `gitops-root` (may create
 `OCIRepository` and `Kustomization` in `flux-system` only) come from bootstrap; `component-<name>`
@@ -263,24 +262,24 @@ as `devenv shell -- <cmd>`, so CI and laptops use the same versions. No flakes.
 
 ### In an app repository
 
-| Command | Result |
-| --- | --- |
-| `devenv test` | `treefmt --fail-on-change`, clippy (`-D warnings`), tests, cargo-deny (Postgres started by devenv where the app has one) |
-| `docker buildx build -f Containerfile .` | the image (multi-stage: Rust build stage, `gcr.io/distroless/cc-debian12:nonroot` runtime, both pinned by digest); SBOM and provenance from buildx |
-| `devenv shell -- cue vet ./deploy` | schema check without context |
-| `cue export ./deploy -e name --out text`, `-e team` | app name and team, without context |
-| write `deploy/context_gen.cue`, then `cue export ./deploy -e manifestsYAML --out text` | manifests for one environment |
+| Command                                                                                | Result                                                                                                                                             |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `devenv test`                                                                          | `treefmt --fail-on-change`, clippy (`-D warnings`), tests, cargo-deny (Postgres started by devenv where the app has one)                           |
+| `docker buildx build -f Containerfile .`                                               | the image (multi-stage: Rust build stage, `gcr.io/distroless/cc-debian12:nonroot` runtime, both pinned by digest); SBOM and provenance from buildx |
+| `devenv shell -- cue vet ./deploy`                                                     | schema check without context                                                                                                                       |
+| `cue export ./deploy -e name --out text`, `-e team`                                    | app name and team, without context                                                                                                                 |
+| write `deploy/context_gen.cue`, then `cue export ./deploy -e manifestsYAML --out text` | manifests for one environment                                                                                                                      |
 
 ### In `platform-components`
 
-| Command | Result |
-| --- | --- |
-| `cue cmd clusters` | JSON list of clusters with `publish` flag |
-| `cue cmd render -t cluster=<c>` | `out/<c>/<set>/{flux,components}/…` for every set (runs `helm template`) |
-| `cue cmd check -t cluster=<c>` | whitelist check of the render; non-zero exit on violation |
-| `cue cmd bootstrap -t cluster=<c>` | `out/<c>/bootstrap.yaml` |
-| `cue cmd promote -t to=<c> [-t from=<latest\|c>] [-t components=a,b]` | updates `clusters/<c>/pins.json` |
-| `policies/` render in `out/<c>/policy/components/*` | the Kyverno policies the CI runs with `kyverno apply` |
+| Command                                                               | Result                                                                   |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `cue cmd clusters`                                                    | JSON list of clusters with `publish` flag                                |
+| `cue cmd render -t cluster=<c>`                                       | `out/<c>/<set>/{flux,components}/…` for every set (runs `helm template`) |
+| `cue cmd check -t cluster=<c>`                                        | whitelist check of the render; non-zero exit on violation                |
+| `cue cmd bootstrap -t cluster=<c>`                                    | `out/<c>/bootstrap.yaml`                                                 |
+| `cue cmd promote -t to=<c> [-t from=<latest\|c>] [-t components=a,b]` | updates `clusters/<c>/pins.json`                                         |
+| `policies/` render in `out/<c>/policy/components/*`                   | the Kyverno policies the CI runs with `kyverno apply`                    |
 
 Set artifact tag = content hash of `out/<c>/<set>/`: sha256 of the uncompressed
 `tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C out/<c>/<set> -cf - .`, first
@@ -289,18 +288,18 @@ unchanged set is never re-pushed.
 
 ### Cluster-side names the app render depends on
 
-| Thing | Value |
-| --- | --- |
-| Gateway per environment | `Gateway` named `<env>` in `envoy-gateway-system`, listener `https` |
-| Envoy proxy pods (for ingress policy) | label `homelab-selfuryon.github.io/component: gateway-proxy` in `envoy-gateway-system` (one merged proxy for all Gateways) |
-| OpenBao | `https://openbao.openbao-system.svc:8200`, Kubernetes auth mount `kubernetes`, KV v2 mount `kv` |
-| OpenBao role / path for an app | role `<team>-<env>-<app>`, secret `kv/data/<team>/<env>/<app>/<key>` (field `value`); preview roles bind by namespace label selector `team=<team>,env=preview` (no name globs in OpenBao) |
-| OpenBao CSI | `provider: openbao`, parameters `baoAddress`, `baoKubernetesMountPath`, `roleName`, `objects`; the OpenBao reviewer SA needs `system:auth-delegator` + `get`/`list` namespaces |
-| OpenBao role / path for a platform component | role `platform-<cluster>-<component>`, path `kv/data/platform/<cluster>/<component>` |
-| Argo CD | namespace `argocd`; AppProjects `<team>`, `<team>-preview`; deploy SA `deployer` in every tenant namespace; preview syncs as `argocd:<team>-preview-deployer` (Kyverno confines it to `^<team>-pr-[0-9]+$`); preview namespaces get labels `team`, `env=preview` via `managedNamespaceMetadata` (enforced) |
-| CloudNativePG | operator in `cnpg-system`; `Cluster` `<app>-db`, Secret `<app>-db-app` |
-| OpenBao platform roles | `platform-<cluster>-cert-manager` → SA `cert-manager-system/secret-sync`; `platform-<cluster>-external-dns` → SA `external-dns-system/external-dns` |
-| Platform namespaces | created by the `rbac` set (components never create their own); `openbao-system`, `openbao-csi-provider-system`; `internal-ca` ClusterIssuer is in `system` (OpenBao needs TLS before `policy`) |
+| Thing                                        | Value                                                                                                                                                                                                                                                                                                      |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gateway per environment                      | `Gateway` named `<env>` in `envoy-gateway-system`, listener `https`                                                                                                                                                                                                                                        |
+| Envoy proxy pods (for ingress policy)        | label `homelab-selfuryon.github.io/component: gateway-proxy` in `envoy-gateway-system` (one merged proxy for all Gateways)                                                                                                                                                                                 |
+| OpenBao                                      | `https://openbao.openbao-system.svc:8200`, Kubernetes auth mount `kubernetes`, KV v2 mount `kv`                                                                                                                                                                                                            |
+| OpenBao role / path for an app               | role `<team>-<env>-<app>`, secret `kv/data/<team>/<env>/<app>/<key>` (field `value`); preview roles bind by namespace label selector `team=<team>,env=preview` (no name globs in OpenBao)                                                                                                                  |
+| OpenBao CSI                                  | `provider: openbao`, parameters `baoAddress`, `baoKubernetesMountPath`, `roleName`, `objects`; the OpenBao reviewer SA needs `system:auth-delegator` + `get`/`list` namespaces                                                                                                                             |
+| OpenBao role / path for a platform component | role `platform-<cluster>-<component>`, path `kv/data/platform/<cluster>/<component>`                                                                                                                                                                                                                       |
+| Argo CD                                      | namespace `argocd`; AppProjects `<team>`, `<team>-preview`; deploy SA `deployer` in every tenant namespace; preview syncs as `argocd:<team>-preview-deployer` (Kyverno confines it to `^<team>-pr-[0-9]+$`); preview namespaces get labels `team`, `env=preview` via `managedNamespaceMetadata` (enforced) |
+| CloudNativePG                                | operator in `cnpg-system`; `Cluster` `<app>-db`, Secret `<app>-db-app`                                                                                                                                                                                                                                     |
+| OpenBao platform roles                       | `platform-<cluster>-cert-manager` → SA `cert-manager-system/secret-sync`; `platform-<cluster>-external-dns` → SA `external-dns-system/external-dns`                                                                                                                                                        |
+| Platform namespaces                          | created by the `rbac` set (components never create their own); `openbao-system`, `openbao-csi-provider-system`; `internal-ca` ClusterIssuer is in `system` (OpenBao needs TLS before `policy`)                                                                                                             |
 
 ## Flow: a new app (onboarding)
 

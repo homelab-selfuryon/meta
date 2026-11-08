@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Relative links between the documents must resolve.
+  links:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: nixbuild/nix-quick-install-action@9f63be77f412a248c9d9a65a4c82cf066cdf8f0c # v35
+      - name: Check relative links
+        run: nix shell nixpkgs#lychee -c lychee --offline --no-progress '*.md'
+
+  # The single required status check (branch ruleset in platform-terraform/github).
+  final-check:
+    if: always()
+    needs: [links]
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require every job to have succeeded
+        env:
+          RESULT: ${{ needs.links.result }}
+        run: test "$RESULT" = success

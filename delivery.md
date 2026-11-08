@@ -67,6 +67,7 @@ All GHCR packages are **public** (Argo CD and Flux pull without credentials).
 | GitHub App | the public `octo-sts` App, installed on the org (selected repositories: `gitops` and the repositories whose workflows open PRs or push tags in themselves) |
 | Bot login in PRs and commits | `octo-sts[bot]`; commits are created through the API and signed by GitHub |
 | Trust policies | `.github/chainguard/<identity>.sts.yaml` in the target repository |
+| OIDC subject format | this org gets GitHub's immutable, ID-based subjects: `repo:homelab-selfuryon@353728095/<repo>@<repo_id>:ref:refs/heads/main` (or `:environment:<env>`). Policies use `subject_pattern` with the org ID pinned; a repository's own policies also pin its name, cross-repository ones in `gitops` accept any repository of the org |
 
 
 Rendered manifests carry no `metadata.namespace` for namespaced objects; the namespace comes from the

@@ -15,7 +15,7 @@
 ## Why a separate org
 
 An org is the unit GitHub applies policy to: org rulesets, custom properties, teams, Actions policy,
-OIDC subject prefix (`repo:homelab-selfuryon/*`), and one GHCR namespace for images, deploy
+OIDC subject prefix (`repo:homelab-selfuryon@353728095/<repo>@<repo_id>:…` — this org gets the immutable, ID-based format), and one GHCR namespace for images, deploy
 artifacts and CUE modules. A personal account has none of these, so the example would not be
 realistic there.
 

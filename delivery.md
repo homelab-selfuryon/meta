@@ -10,7 +10,7 @@ them in the same change — this page is the contract the repositories are built
 | --- | --- |
 | GitHub org | `homelab-selfuryon` |
 | Registry | `ghcr.io/homelab-selfuryon` |
-| CUE registry | `CUE_REGISTRY=github.com/homelab-selfuryon=ghcr.io/homelab-selfuryon` |
+| CUE registry | `CUE_REGISTRY='inline:moduleRegistries: "github.com/homelab-selfuryon": {registry: "ghcr.io/homelab-selfuryon/cue", stripPrefix: true}'` |
 | Label / annotation prefix | `homelab-selfuryon.github.io/` (`team`, `env`, `managed-by`, `component`) |
 | Cluster | `alpha-01` (Talos, one node). Design allows more. |
 | Domain | `homelab.example` — placeholder until a real domain is chosen |
@@ -34,12 +34,12 @@ All OCI artifacts are pushed with `oras`, one layer of media type
 | `<app>/manifests` | `pr-<n>` | `preview/manifests.yaml` | `app-preview.yaml` | the app |
 | `platform-components/<cluster>-<set>` | content hash | `kustomizations.yaml` + `<component>/manifests.yaml` | `platform-components/.github/workflows/release.yaml` (own job, not reusable) | `platform-components` |
 | `gitops/<cluster>` | `main` + git SHA | `flux/` (set OCIRepositories + Kustomizations, `argo-apps`), `argo/` (Applications, ApplicationSets) | `gitops/.github/workflows/publish.yaml` (own job, not reusable) | `gitops` |
-| `platform-kit` (CUE module) | `v<semver>` (git tag) | `cue mod publish` of module `github.com/homelab-selfuryon/platform-kit@v0` | `platform-kit` own `release.yaml` (`GITHUB_TOKEN`, `packages: write`) | — |
+| `platform-kit` (CUE module) | `v<semver>` (git tag) | `cue mod publish` of module `github.com/homelab-selfuryon/platform-kit@v0` → `ghcr.io/homelab-selfuryon/cue/platform-kit` | `platform-kit` own `release.yaml` (`GITHUB_TOKEN`, `packages: write`) | — |
 
-CUE modules live in the same GHCR namespace: `CUE_REGISTRY` maps the module path
-`github.com/homelab-selfuryon/<repo>` to `ghcr.io/homelab-selfuryon/<repo>`, so a repository that
-publishes a CUE module must not also publish an image under its own name (today only `platform-kit`
-publishes a module). Modules are public packages, consumers need no `cue login`.
+CUE modules have their own prefix: `CUE_REGISTRY` (an inline config with `stripPrefix`) maps the module path
+`github.com/homelab-selfuryon/<repo>` to `ghcr.io/homelab-selfuryon/cue/<repo>`, so any repository can
+publish a module next to its image and manifests without a name collision. The platform-kit devenv
+module sets `CUE_REGISTRY` for every shell. Modules are public packages, consumers need no `cue login`.
 
 Certificate identities:
 

@@ -68,18 +68,18 @@ flowchart LR
 
 ## Repositories
 
-| Repo | Owner | What it is |
-| --- | --- | --- |
-| [`meta`](README.md) | platform | This documentation. |
-| [`.github`](dot-github.md) | platform | Org profile, default community health files, shared Renovate preset. |
-| [`platform-terraform`](platform-terraform.md) | platform | OpenTofu per provider: `github/` (org, repositories, rulesets, teams), `openbao/` (auth, policies, roles). Local state, applied by the owner. |
-| [`github-workflows`](github-workflows.md) | platform | Reusable workflows: build, sign, render, publish, PR to `gitops`, promote, `gitops` checks. Their identity is the release trust anchor. |
-| [`platform-kit`](platform-kit.md) | platform | The paved road: CUE module with `#App` and environment definitions, devenv module for Rust apps. |
-| [`platform-components`](platform-components.md) | platform | Cluster definitions (Talos), platform components, Kyverno policies, team onboarding. Releases one signed artifact per component set and cluster. |
-| [`gitops`](gitops.md) | platform; teams own their version files | What runs where: digests per cluster set and per app environment. Rendered to Flux and Argo CD objects, published as a signed OCI artifact. |
-| [`rust-app-template`](rust-app-template.md) | platform | GitHub template for a new app. |
-| [`notes-api`](notes-api.md) | notes | Example app: REST API with Postgres. |
-| [`notes-stats`](notes-stats.md) | notes | Example app: calls `notes-api` with a projected ServiceAccount token. |
+| Repo                                            | Owner                                   | What it is                                                                                                                                       |
+| ----------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`meta`](README.md)                             | platform                                | This documentation.                                                                                                                              |
+| [`.github`](dot-github.md)                      | platform                                | Org profile, default community health files, shared Renovate preset.                                                                             |
+| [`platform-terraform`](platform-terraform.md)   | platform                                | OpenTofu per provider: `github/` (org, repositories, rulesets, teams), `openbao/` (auth, policies, roles). Local state, applied by the owner.    |
+| [`github-workflows`](github-workflows.md)       | platform                                | Reusable workflows: build, sign, render, publish, PR to `gitops`, promote, `gitops` checks. Their identity is the release trust anchor.          |
+| [`platform-kit`](platform-kit.md)               | platform                                | The paved road: CUE module with `#App` and environment definitions, devenv module for Rust apps.                                                 |
+| [`platform-components`](platform-components.md) | platform                                | Cluster definitions (Talos), platform components, Kyverno policies, team onboarding. Releases one signed artifact per component set and cluster. |
+| [`gitops`](gitops.md)                           | platform; teams own their version files | What runs where: digests per cluster set and per app environment. Rendered to Flux and Argo CD objects, published as a signed OCI artifact.      |
+| [`rust-app-template`](rust-app-template.md)     | platform                                | GitHub template for a new app.                                                                                                                   |
+| [`notes-api`](notes-api.md)                     | notes                                   | Example app: REST API with Postgres.                                                                                                             |
+| [`notes-stats`](notes-stats.md)                 | notes                                   | Example app: calls `notes-api` with a projected ServiceAccount token.                                                                            |
 
 ## Stack
 

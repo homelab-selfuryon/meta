@@ -62,6 +62,9 @@ stay, struck through, with the reason. How the decisions fit together end to end
   produces SBOM and provenance. Cost: `devenv.lock` has no Renovate manager — a scheduled
   `devenv update` workflow opens the PRs. ~~Flake devshells; Nix-built images (crane +
   `dockerTools`)~~ — more machinery than a shell and an image need.
+- **2026-11-08 — Shared devenv layers from `platform-kit`:** `base.nix` (secret and private-key
+  hooks, formatters, workflow linters) for every repository, `cue.nix` for CUE repositories,
+  `rust-app.nix` for apps. One copy of the CUE build and the hooks instead of one per repository.
 - **2026-11-08 — Renovate config in `.github/renovate.json`** in every repository (the preset itself
   stays `default.json` at the root of `.github`).
 - **2026-11-07 — Reusable workflows in their own repository `github-workflows`**, tagged `v1.x`,

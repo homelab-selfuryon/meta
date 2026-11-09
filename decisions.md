@@ -147,6 +147,15 @@ stay, struck through, with the reason. How the decisions fit together end to end
   `HelmRelease` lives in `flux-system` next to the ServiceAccounts and installs into the
   component's namespace; A is limited to privileged components until component ServiceAccounts get
   rights in `flux-system`.
+- **2026-11-09 — alpha-01 runs without disk encryption for now.** The node was installed
+  before the platform design with Secure Boot off; Talos encrypts a volume only when it creates it,
+  so TPM-sealed LUKS2 needs a reinstall with Secure Boot on. Bootstrapped on the existing install
+  instead; `talos/patches/encryption.yaml` stays ready (`ENCRYPT=1`). Do the reinstall before
+  anything that matters lives on the node (OpenBao data, databases), or back those up first.
+- **2026-11-09 — alpha-01's networks are committed.** Private ranges only (an IPv6 ULA prefix and
+  the RFC 1918 LAN): they reveal next to nothing and the host firewall needs them in the published
+  render. The node's public IPv6 prefix and the install disk's serial stay out of git
+  (`.secrets/talos/<cluster>/local.yaml`). The domain is still a placeholder.
 - **2026-11-07 — Cluster-scoped whitelist per component.** A component declares which
   cluster-scoped kinds and names it may create; tenants may create none. Enforced three times: CI
   check of the render, a per-component ServiceAccount for Flux (RBAC by kind) and an admission

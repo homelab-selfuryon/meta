@@ -168,9 +168,10 @@ components into **sets**, and each set becomes one artifact:
 
 Sets on `alpha-01`, in order: `rbac` (component ServiceAccounts, ClusterRoles from the whitelists,
 the admission policies binding them — privileged), `system` (Cilium, Flux Operator, Kyverno, Gateway
-API CRDs, cert-manager — privileged where marked), `platform` (Envoy Gateway, external-dns,
-CloudNativePG operator, OpenBao, Secrets Store CSI driver, Argo CD, local-path, metrics-server),
-`policy` (Kyverno policies, host firewall, ClusterIssuers, Gateways), `tenants` (from `teams/*.cue`:
+API CRDs, cert-manager — privileged where marked), `policy` (Kyverno policies, host firewall: before
+any platform component, so nothing there can hold them back), `platform` (Envoy Gateway,
+external-dns, CloudNativePG operator, OpenBao, Secrets Store CSI driver, Argo CD, local-path,
+metrics-server, ClusterIssuers, Gateways), `tenants` (from `teams/*.cue`:
 namespaces, quotas, AppProjects, deploy ServiceAccounts, RBAC for the team group).
 
 ### Flux object names (the contract between `platform-components` and `gitops`)

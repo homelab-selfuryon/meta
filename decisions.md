@@ -147,6 +147,11 @@ stay, struck through, with the reason. How the decisions fit together end to end
   `HelmRelease` lives in `flux-system` next to the ServiceAccounts and installs into the
   component's namespace; A is limited to privileged components until component ServiceAccounts get
   rights in `flux-system`.
+- **2026-11-09 — Policies before the platform components.** Set order `rbac`, `system`, `policy`,
+  `platform`, `tenants`; `policy` holds only the Kyverno policies and the host firewall. With
+  `wait: true` a set is ready only when all its components are, so with `policy` after `platform`
+  a component waiting for a secret (external-dns at bootstrap) kept the policies out of the
+  cluster. ClusterIssuers and Gateways moved to `platform`, next to the operators they need.
 - **2026-11-09 — alpha-01 runs without disk encryption for now.** The node was installed
   before the platform design with Secure Boot off; Talos encrypts a volume only when it creates it,
   so TPM-sealed LUKS2 needs a reinstall with Secure Boot on. Bootstrapped on the existing install

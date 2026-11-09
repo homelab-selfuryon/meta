@@ -157,9 +157,10 @@ object diff old → new as a PR comment.
 ## Platform layout (`platform-components`)
 
 Components are CUE packages; a chart component is rendered with `helm template` in CI (variant B),
-or listed as a `HelmRelease` exception (variant A). Each cluster resolves component versions from
-`registry/latest.json` (Renovate) and its own `pins.json`, groups components into **sets**, and each
-set becomes one artifact:
+or listed as a `HelmRelease` exception (variant A: on alpha-01 Kyverno; the `HelmRelease` and its
+source are in `flux-system`, the component's Kustomization has no `targetNamespace`). Each cluster
+resolves component versions from `registry/latest.json` (Renovate) and its own `pins.json`, groups
+components into **sets**, and each set becomes one artifact:
 
 - `kustomizations.yaml` — one Flux `Kustomization` per component (path `./<component>`, its own
   `serviceAccountName: component-<name>`, `targetNamespace`, `dependsOn`), all in `flux-system`.

@@ -155,7 +155,18 @@ stay, struck through, with the reason. How the decisions fit together end to end
 - **2026-11-09 — alpha-01's networks are committed.** Private ranges only (an IPv6 ULA prefix and
   the RFC 1918 LAN): they reveal next to nothing and the host firewall needs them in the published
   render. The node's public IPv6 prefix and the install disk's serial stay out of git
-  (`.secrets/talos/<cluster>/local.yaml`). The domain is still a placeholder.
+  (`.secrets/talos/<cluster>/local.yaml`).
+- **2026-11-09 — alpha-01's domain is `homelab.ys7.me`, with private addresses in public DNS.**
+  external-dns writes the Gateway's addresses to the Cloudflare zone: an A record with the LAN
+  address and an AAAA record with a fixed ULA address of the node (Cilium node IPAM, no NodePorts).
+  Anyone can resolve the names, nobody outside can reach them: at home the LAN works directly,
+  elsewhere the ULA prefix is routed by NetBird (only the ULA prefix: the LAN range collides with
+  other networks). Certificates by DNS-01. ~~Split-horizon DNS through NetBird~~: hides the names,
+  but adds an in-cluster DNS server and breaks when the client's NetBird DNS does. The node's SLAAC
+  address is derived from its MAC, so the node gets a fixed ULA address for this. No ACME e-mail.
+- **2026-11-09 — NetBird routing peer runs in the cluster.** A pod in the platform advertises the
+  ULA prefix; NetBird is also the everyday path to the Talos and Kubernetes APIs. Break-glass stays
+  the LAN plus the offline bundle (Access).
 - **2026-11-07 — Cluster-scoped whitelist per component.** A component declares which
   cluster-scoped kinds and names it may create; tenants may create none. Enforced three times: CI
   check of the render, a per-component ServiceAccount for Flux (RBAC by kind) and an admission
@@ -238,10 +249,9 @@ stay, struck through, with the reason. How the decisions fit together end to end
   diff gate on RBAC rules, or a per-component max-rules declaration.
 - **metrics-server uses `--kubelet-insecure-tls`** until Talos `rotate-server-certificates` + a CSR
   approver are in place.
-- **Domain.** The render uses a placeholder (`homelab.example`) until a real domain is chosen;
-  wildcard DNS and cert-manager DNS-01 need it.
-- **Private access: NetBird** (cloud Free: 5 users, 100 machines): Kubernetes operator with API
-  server proxy, or a routing peer to 6443/50000. Break-glass never depends on it.
+- **Private access: NetBird** (cloud Free: 5 users, 100 machines): routing peer in the cluster
+  (decided above). Open: NetBird's operator with its API server proxy (identity-based `kubectl`) on
+  top of it. Break-glass never depends on it.
 - **Human identity** for web UIs (Argo CD, Grafana, Hubble, OpenBao): GitHub via Dex, Pocket ID,
   Kanidm, or the private network identity only.
 - **Observability:** VictoriaMetrics, VictoriaLogs + Vector, Grafana; API audit log shipped where

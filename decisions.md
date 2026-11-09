@@ -186,6 +186,7 @@ stay, struck through, with the reason. How the decisions fit together end to end
   label `homelab-selfuryon.github.io/managed-by: platform`, default-deny plus a per-component
   CiliumNetworkPolicy, PSA `restricted` unless the component is a listed exception. The platform
   team gets view rights plus break-glass, like any other team.
+  2026-11-09: Argo CD moved from `argocd` to `argocd-system`, so there is no exception left.
 - **2026-11-07 — Kyverno policies live in `platform-components`**, CEL policies
   (`policies.kyverno.io/v1`), Enforce from day one. `gitops` PR checks run the policy version the
   target cluster currently runs.

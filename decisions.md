@@ -137,12 +137,16 @@ stay, struck through, with the reason. How the decisions fit together end to end
 ### Platform components
 
 - **2026-11-07 — Platform has clusters, not environments.** Each cluster has its own component set
-  and its own lock; versions move between clusters by promotion.
+  and its own pins (`clusters/<c>/pins.json`); versions move between clusters by promotion.
 - **2026-11-07 — Upstream charts rendered in CI (variant B), `HelmRelease` only as a listed
   exception (A).** B: `helm template` in CI from typed CUE values; the artifact holds plain objects;
   no Helm in the cluster. A: for charts B can't handle (hooks, `lookup`), the artifact holds a
   `HelmRelease` with the chart pinned by digest; CI still renders the chart for the PR diff, the
   whitelist and Kyverno, without publishing that render, and marks the diff as approximate.
+  2026-11-09: Kyverno moved to A (its post-upgrade and pre-delete hooks are needed). The
+  `HelmRelease` lives in `flux-system` next to the ServiceAccounts and installs into the
+  component's namespace; A is limited to privileged components until component ServiceAccounts get
+  rights in `flux-system`.
 - **2026-11-07 — Cluster-scoped whitelist per component.** A component declares which
   cluster-scoped kinds and names it may create; tenants may create none. Enforced three times: CI
   check of the render, a per-component ServiceAccount for Flux (RBAC by kind) and an admission

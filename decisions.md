@@ -219,6 +219,19 @@ stay, struck through, with the reason. How the decisions fit together end to end
     Manager~~, ~~HCP Vault Secrets~~ (end of life), ~~SOPS/Sealed Secrets for app secrets~~ —
     encrypted secrets in public git are still out.
 
+- **2026-11-11 — PostgreSQL: one CloudNativePG `Cluster` per app and environment, in the team's
+  namespace, shaped by the platform.** The team only says `database: postgres: {}`; platform-kit
+  renders the Cluster (size, storage, no superuser) and Kyverno keeps it that way. Images come from
+  the platform's `ClusterImageCatalog` `postgresql`, pinned by digest in platform-components
+  (`registry/latest.json`, Renovate), so major upgrades and image choice stay with the platform. The
+  operator's own images are the only foreign images allowed in tenant namespaces (`tenantImages` of
+  the `cnpg` component). Reasons: preview namespaces need a database per pull request that lives
+  and dies with it; one app's load, upgrade or restore does not touch another team; credentials stay
+  in the app's namespace (CloudNativePG's Secret). ~~Shared clusters run by the platform, databases
+  per app~~ — cross-namespace credentials and network paths, a shared blast radius, and dynamic
+  per-PR databases in a cluster the team does not own (`Database` objects must live next to the
+  Cluster).
+
 ### Access
 
 - **2026-11-07 — Break-glass independent of the private access network:** offline age-encrypted

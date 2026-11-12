@@ -46,7 +46,10 @@ Certificate identities:
 - **App artifacts** (checked by gitops verify and Kyverno):
   `^https://github\.com/homelab-selfuryon/github-workflows/\.github/workflows/<workflow>\.yaml@.+$`
   plus the source repository (`--certificate-github-workflow-repository`) and, for releases, the
-  source ref (`--certificate-github-workflow-ref` = `refs/tags/v*`). Preview artifacts carry a
+  source ref (`--certificate-github-workflow-ref` = `refs/tags/v*`). Any workflow ref, because callers pin
+  `github-workflows` by commit; gitops verify also requires the commit the workflow ran from
+  (Build Signer Digest, OID 1.3.6.1.4.1.57264.1.10) to be on `github-workflows` main, since a fork's
+  commit is reachable by SHA through the parent repository. Preview artifacts carry a
   different workflow identity, so nothing that checks for `app-release.yaml` admits them.
 - **Artifacts Flux verifies** (`gitops/<cluster>`, platform sets) are signed in a job defined in the
   publishing repository itself, not in a reusable workflow, so the certificate subject carries that
@@ -171,7 +174,7 @@ the admission policies binding them — privileged), `system` (Cilium, Flux Oper
 API CRDs, cert-manager — privileged where marked), `policy` (Kyverno policies, host firewall: before
 any platform component, so nothing there can hold them back), `platform` (Envoy Gateway,
 external-dns, CloudNativePG operator, OpenBao, Secrets Store CSI driver, Argo CD, local-path,
-metrics-server, ClusterIssuers, Gateways), `tenants` (from `teams/*.cue`:
+metrics-server, ClusterIssuers, Gateways, the Kyverno policies' ClusterRoles), `tenants` (from `teams/*.cue`:
 namespaces, quotas, AppProjects, deploy ServiceAccounts, RBAC for the team group).
 
 ### Flux object names (the contract between `platform-components` and `gitops`)
@@ -293,6 +296,8 @@ unchanged set is never re-pushed.
 | Thing                                        | Value                                                                                                                                                                                                                                                                                                                                                  |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Gateway per environment                      | `Gateway` named `<env>` in `envoy-gateway-system`, listener `https`                                                                                                                                                                                                                                                                                    |
+| App name and host names                      | app name `<team>` or `<team>-<name>`; hosts `<app>.<domain>` (prod), `<app>.staging.<domain>`, `<app>-pr-<n>.preview.<domain>`: admission (`tenant-http-routes`) refuses others, and routes on another Gateway                                                                                                                                         |
+| App network policies                         | what the render emits: ingress `fromEndpoints`; egress `toEndpoints` in team namespaces or kube-dns, `toFQDNs` `matchName`, `toEntities: [kube-apiserver]`; selectors `matchLabels` with `k8s:` or `<prefix>/<name>` keys (`tenant-network-policies`)                                                                                                  |
 | Envoy proxy pods (for ingress policy)        | label `homelab-selfuryon.github.io/component: gateway-proxy` in `envoy-gateway-system` (one merged proxy for all Gateways)                                                                                                                                                                                                                             |
 | OpenBao                                      | `https://openbao.openbao-system.svc:8200`, Kubernetes auth mount `kubernetes`, KV v2 mount `kv`                                                                                                                                                                                                                                                        |
 | OpenBao role / path for an app               | role `<team>-<env>-<app>`, secret `kv/data/<team>/<env>/<app>/<key>` (field `value`); preview roles bind by namespace label selector `team=<team>,env=preview` (no name globs in OpenBao)                                                                                                                                                              |

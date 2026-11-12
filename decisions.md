@@ -73,6 +73,13 @@ stay, struck through, with the reason. How the decisions fit together end to end
 
 ### Delivery
 
+- **2026-11-12 — Reusable workflows stay pinned by SHA; the signing identity takes any ref, the commit
+  must be on `github-workflows` main.** The org preset pins by digest, and callers follow it. A
+  fork's commit is reachable by SHA through the parent repository and would sign as ours, so gitops
+  verify checks the Build Signer Digest of every signature on an app artifact against
+  `github-workflows` main. octo-sts and Kyverno only see the identity: the gate is verify, which
+  every staging and prod change passes. ~~Accept tags only (`@refs/tags/v.+`) behind a tag
+  ruleset~~: rejected, it gives up SHA pinning.
 - **2026-11-07 — Source repositories release, `gitops` only pins.** Each source repository renders
   and publishes its own signed, content-addressed OCI manifest artifact and keeps its own input lock
   (`Cargo.lock` + `cue.mod` in an app, `pins.json` per cluster in `platform-components`). Its CI

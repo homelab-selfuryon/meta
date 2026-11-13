@@ -203,52 +203,132 @@ the `gitops` OCIRepository and root Kustomization).
 
 ## Flow: an application change
 
+```mermaid
+---
+config:
+  flowchart:
+    wrappingWidth: 260
+---
+flowchart TB
+    subgraph pr["PR #12 in notes-api"]
+        direction LR
+        ci["<b>ci.yaml</b> → rust-ci<br/>fmt, clippy, test,<br/>cargo-deny, cue vet"]
+        preview["<b>app-preview</b><br/>image pr-12-&lt;sha7&gt;<br/>manifests:pr-12, signed"]
+        appset["<b>Argo ApplicationSet</b><br/>namespace notes-pr-12,<br/>removed with the PR"]
+        ci --> preview --> appset
+    end
+
+    subgraph main["merge to main"]
+        direction LR
+        rp["<b>release-please</b><br/>release PR, changelog<br/>(octo-sts token)"]
+        tag(["merge the release PR<br/>→ tag v1.2.0"])
+        rp --> tag
+    end
+
+    subgraph release["tag v1.2.0: app-release, environment staging"]
+        direction LR
+        image["<b>image</b><br/>buildx, push, sign,<br/>SBOM, provenance"]
+        manifests["<b>manifests:v1.2.0</b><br/>render staging + prod,<br/>sign"]
+        stg["<b>PR to gitops</b><br/>…/staging.json<br/>auto-merge"]
+        image --> manifests --> stg
+    end
+
+    subgraph prod["Actions → promote from v1.2.0, environment prod"]
+        direction LR
+        resolve["<b>app-promote</b><br/>resolve and verify<br/>manifests:v1.2.0"]
+        prodpr["<b>PR to gitops</b><br/>…/prod.json<br/>team approves"]
+        resolve --> prodpr
+    end
+
+    subgraph deliver["cluster"]
+        direction LR
+        gitops["<b>gitops</b><br/>verify, merge,<br/>publish alpha-01"]
+        flux["<b>Flux</b><br/>verifies the artifact,<br/>applies Applications"]
+        argo["<b>Argo CD</b><br/>syncs notes-staging,<br/>notes-prod as deployer"]
+        gitops --> flux --> argo
+    end
+
+    pr --> main --> release
+    release -->|"staging: auto-merge"| deliver
+    release ~~~ prod
+    prod -->|"prod: team approves"| deliver
 ```
-PR in notes-api
-  ci.yaml → rust-ci (fmt, clippy, test, cargo-deny, cue vet)
-          → app-preview: image pr-12-<sha7>, render preview (-pr 12), manifests:pr-12, sign
-  Argo ApplicationSet (PR generator) → namespace notes-pr-12 → removed when the PR closes
 
-merge to main
-  release-please.yaml (token from octo-sts, so the tag triggers workflows) → release PR with changelog
-
-merge the release PR → tag v1.2.0
-  release.yaml → app-release (environment: staging, tags v* only)
-    buildx image → push → cosign sign, SBOM, provenance
-    render staging + prod → manifests:v1.2.0 → cosign sign
-    octo-sts token for gitops (sub …:environment:staging, workflow app-release.yaml)
-    PR to gitops: apps/notes/notes-api/staging.json → auto-merge enabled
-  gitops verify → merge → gitops publish → gitops/alpha-01 artifact
-  Flux pulls it (cosign verified), applies the Application → Argo CD syncs notes-staging
-      impersonating the team's deploy ServiceAccount
-
-prod: Actions → promote → "Use workflow from: v1.2.0" (environment: prod)
-  app-promote: resolve manifests:v1.2.0 → verify → PR apps/notes/notes-api/prod.json
-  team CODEOWNERS approval → merge → same path as above
-
-rollback: revert the PR in gitops
-```
+The release-please token comes from octo-sts, so the tag it pushes triggers workflows. app-release's
+token for gitops is also from octo-sts (`sub …:environment:staging`, workflow `app-release.yaml`).
+Argo CD syncs impersonating the team's deploy ServiceAccount; prod reaches the cluster the same
+way once the team approves (CODEOWNERS). The preview ApplicationSet is a PR generator. Rollback:
+revert the PR in `gitops`.
 
 ## Flow: a platform change
 
+```mermaid
+---
+config:
+  flowchart:
+    wrappingWidth: 260
+---
+flowchart TB
+    subgraph pc["platform-components"]
+        direction LR
+        bump["<b>Renovate</b><br/>bumps latest.json<br/>(or a person edits)"]
+        promote["<b>cue cmd promote</b><br/>-t to=alpha-01<br/>→ pins.json, PR"]
+        checks["<b>PR checks</b><br/>render, whitelists,<br/>Kyverno, object diff"]
+        bump --> promote --> checks
+    end
+
+    subgraph rel["merge"]
+        direction LR
+        release["<b>components-release</b><br/>render, push changed<br/>sets, sign"]
+        gpr["<b>PR to gitops</b><br/>alpha-01/releases.json<br/>platform approves"]
+        release --> gpr
+    end
+
+    subgraph cluster["merge in gitops"]
+        direction LR
+        publish["<b>gitops publish</b>"]
+        oci["<b>Flux</b><br/>OCIRepository<br/>(verify)"]
+        ks["set Kustomization<br/>→ component<br/>Kustomizations"]
+        publish --> oci --> ks
+    end
+
+    pc --> rel --> cluster --> next(["next cluster: cue cmd promote<br/>-t from=alpha-01 -t to=&lt;next&gt;"])
 ```
-Renovate bumps registry/latest.json (or a person edits a component)
-cue cmd promote -t to=alpha-01 → pins.json         (PR in platform-components)
-  PR checks: helm template + CUE render per cluster, whitelist check, Kyverno, object diff
-merge → components-release: render, push changed set artifacts, sign
-      → PR to gitops clusters/alpha-01/releases.json (platform approval)
-merge → gitops publish → Flux: OCIRepository (verify) → set Kustomization → component Kustomizations
-next cluster: promote -t from=alpha-01 -t to=<next>
-```
+
+PR checks: `helm template` + CUE render per cluster, whitelist check, Kyverno, object diff. Flux:
+OCIRepository (cosign verify) → set Kustomization → component Kustomizations.
 
 ## Flow: a secret
 
+```mermaid
+---
+config:
+  flowchart:
+    wrappingWidth: 260
+---
+flowchart TB
+    subgraph write["writes"]
+        direction LR
+        roles["<b>platform-terraform/openbao</b><br/>a role per app × env,<br/>its own path only"]
+        owner["<b>owner</b>, private access<br/>bao kv put kv/notes/prod/<br/>notes-api/example-key"]
+    end
+
+    bao[("OpenBao")]
+
+    subgraph read["pod start"]
+        direction LR
+        deploy["<b>deploy.cue</b><br/>secrets: [#quot;example-key#quot;]"]
+        spc["<b>SecretProviderClass</b><br/>role notes-prod-notes-api"]
+        csi["<b>CSI driver</b><br/>Kubernetes auth with the<br/>pod's SA token, writes<br/>/var/run/secrets/app/example-key"]
+        deploy --> spc --> csi
+    end
+
+    write --> bao
+    bao <--> read
 ```
-owner (over private access) → bao kv put kv/notes/prod/notes-api/example-key value=…
-deploy.cue: secrets: ["example-key"] → SecretProviderClass (role notes-prod-notes-api)
-pod start → CSI driver → OpenBao Kubernetes auth with the pod's SA token → file /var/run/secrets/app/example-key
-roles and policies: platform-terraform/openbao (one role per app × env, own path only)
-```
+
+The owner writes over private access; `platform-terraform/openbao` holds one role per app ×
+environment, each limited to its own path.
 
 ## Bootstrap (once per cluster, by hand, over the break-glass path)
 
@@ -312,18 +392,31 @@ unchanged set is never re-pushed.
 
 Members can't create repositories, so a new app starts as a PR to the platform:
 
-```
-PR to platform-terraform: apps.json += {name: "notes-search", team: "notes"}
-  (a new team: also teams.json + platform-components teams/<team>.cue)
-owner: tofu apply github/   → repository from rust-app-template, custom properties
-                              (owner-team, kind=app, tier, lifecycle), team access,
-                              environments staging/prod (tags v*), rulesets
-owner: tofu apply openbao/  → roles and policies <team>-<env>-<app>
-team: first PR renames the template (Cargo, deploy.cue name/team) → merge to main
-  register.yaml → app-register (octo-sts identity app-register, only for repositories
-  with property kind=app) → PR to gitops: apps/<team>/<app>/app.cue + registry entry
-  gitops verify: deploy.cue team == the repository's owner-team property; platform approves
-first tag → normal release flow
+```mermaid
+---
+config:
+  flowchart:
+    wrappingWidth: 260
+---
+flowchart TB
+    subgraph platform["platform"]
+        direction LR
+        pr["<b>PR to platform-terraform</b><br/>apps.json += notes-search<br/>(new team: teams.json,<br/>teams/&lt;team&gt;.cue)"]
+        gh["<b>tofu apply github/</b><br/>repository from template,<br/>properties, team access,<br/>environments, rulesets"]
+        bao["<b>tofu apply openbao/</b><br/>roles and policies<br/>&lt;team&gt;-&lt;env&gt;-&lt;app&gt;"]
+        pr --> gh
+        pr --> bao
+    end
+
+    subgraph team["team"]
+        direction LR
+        rename["<b>first PR</b><br/>renames the template<br/>(Cargo, deploy.cue)"]
+        register["<b>register.yaml</b><br/>app-register (kind=app)<br/>→ PR to gitops: app.cue"]
+        verify["<b>gitops verify</b><br/>team == owner-team,<br/>platform approves"]
+        rename --> register --> verify
+    end
+
+    platform --> team --> tag(["first tag → normal release flow"])
 ```
 
 `apps.json` and `teams.json` at the root of `platform-terraform` are read by both `github/` and

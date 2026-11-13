@@ -15,7 +15,12 @@ Source repositories publish signed OCI artifacts and open a PR in `gitops` that 
 `gitops` publishes what runs where; the cluster only pulls.
 
 ```mermaid
-flowchart LR
+---
+config:
+  flowchart:
+    wrappingWidth: 260
+---
+flowchart TB
     svc["<b>notes-api, notes-stats</b><br/>Rust + deploy.cue"]
     comp["<b>platform-components</b><br/>charts → CUE → objects"]
 
@@ -50,6 +55,11 @@ A team writes code and one `deploy.cue`. Everything else comes as versioned depe
 Renovate:
 
 ```mermaid
+---
+config:
+  flowchart:
+    wrappingWidth: 260
+---
 flowchart LR
     kit["<b>platform-kit</b><br/>#App schema<br/>devenv module"]
     wf["<b>github-workflows</b><br/>build, sign, release,<br/>promote"]

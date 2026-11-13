@@ -29,7 +29,8 @@ Rulesets, environment required reviewers, secret scanning push protection and co
 
 - Rulesets in every repository (org-level rulesets are not on Free): signed commits; PR +
   CODEOWNERS on the default branch; no force-push/deletion; immutable `v*` tags; required check
-  `final-check`. Admins may bypass through a PR only, while there is one maintainer.
+  `final-check`; resolved threads. Code-owner review required, no admin bypass, except in this
+  homelab (one maintainer: no review, see below).
 - Custom properties: `tier` (`tier-1` for platform-kit, platform-components, github-workflows, gitops, platform-terraform), `owner-team`,
   `lifecycle` (schema org-level, values per repository). Adding them to the Actions OIDC token is
   not supported by the Terraform provider yet.
@@ -39,8 +40,14 @@ Rulesets, environment required reviewers, secret scanning push protection and co
 - No stored Actions secrets at all; everything via OIDC or `GITHUB_TOKEN`.
 - Teams: `platform`, one per product team; CODEOWNERS reference teams, not people.
 
-## Solo-maintainer caveat
+## Solo-maintainer exception
 
-Two-person rules (2 approvals, "last push approved by someone else", environment reviewers with
-prevent-self-review) can't be satisfied by one person. Either a second maintainer account or the
-rule is documented and set to 1 with a note. Open in [decisions.md](decisions.md).
+This organization has one maintainer, and GitHub never lets an author approve their own pull
+request. So here the default-branch ruleset requires **no review** (`solo_maintainer = true` in
+`platform-terraform/github/homelab.auto.tfvars`) and has no admin bypass; everything else above
+holds, and the checks bind the maintainer too. Other two-person rules (environment reviewers with
+prevent-self-review, "last push approved by someone else") are not used for the same reason.
+
+**A real organization does not copy this:** every change is approved by a code owner other than its
+author, and nobody bypasses the rulesets. Undo it with the second maintainer
+([decisions.md](decisions.md), 2026-11-13).

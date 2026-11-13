@@ -24,9 +24,16 @@ stay, struck through, with the reason. How the decisions fit together end to end
   org-level rulesets or required workflows (API 404), so `platform-terraform/github` creates the
   same two rulesets in every repository (default branch; immutable `v*` tags). Every repository's
   CI has a job `final-check` that fails unless all its other jobs succeeded or were skipped.
-- **2026-11-07 — Admin bypass through a PR only, while there is one maintainer.** Code-owner review
-  can't be satisfied by the PR author, so repository admins may merge their own PR; direct pushes
-  stay blocked. `ruleset_admin_bypass = false` once there is a second maintainer.
+- **2026-11-13 — One maintainer: no required review, no admin bypass (exception of this homelab).**
+  GitHub never lets the author approve their own pull request, so a required code-owner review could
+  only be met by bypassing the ruleset, and a bypass skips the required checks too. platform-terraform
+  sets `solo_maintainer = true` and `ruleset_admin_bypass = false` in `github/homelab.auto.tfvars`:
+  the default-branch ruleset keeps pull requests, signed commits, linear history, `final-check` and
+  resolved threads, without a review. Bot tokens (octo-sts) could now merge a pull request whose
+  checks pass; the workflows do not, and gitops verify gates every artifact. **A real organization
+  does not do this**: every change is approved by a code owner other than its author, no admin bypass.
+  Undo as soon as there is a second maintainer. ~~Admin bypass through a PR only (2026-11-07)~~:
+  every merge was a bypass, checks included.
   ~~`org`, `github-configuration`, `github-config`~~ — one repository for all provider config
   instead of one per provider.
 - **2026-11-07 — `.github` repository kept** for what only that name does: org profile
@@ -290,5 +297,4 @@ stay, struck through, with the reason. How the decisions fit together end to end
 
 ### Org
 
-- **Solo maintainer vs two-person rules:** second account, or documented 1-approval rules.
 - **2FA requirement:** enable in the UI (not settable via the API).

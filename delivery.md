@@ -148,8 +148,9 @@ apps/<team>/<app>/prod.json        same shape                                   
 app and environment an Argo CD `Application` (project `<team>`, source
 `oci://ghcr.io/homelab-selfuryon/<app>/manifests` at the digest, path `<env>`, destination
 `<team>-<env>`, automated sync with prune and self-heal); for every app with preview an
-`ApplicationSet` (pull request generator → project `<team>-preview`, revision `pr-<n>`, namespace
-`<team>-pr-<n>`, created by Argo).
+`ApplicationSet` (pull request generator, open PRs labelled `preview` only → project
+`<team>-preview`, revision `pr-<n>`, namespace `<team>-pr-<n>`, created by Argo; removing the label
+or closing the PR removes the Application, `cleanup-preview-namespaces` the namespace).
 
 PR checks (`gitops/.github/workflows/verify.yaml`, "gitops verify" below): CUE vet and render; for every changed version file the artifact's
 signature, workflow identity and source repository (the registration's repo), and that the tag
@@ -214,9 +215,9 @@ flowchart TB
     subgraph pr["PR #12 in notes-api"]
         direction LR
         ci["<b>ci.yaml</b> → rust-ci<br/>fmt, clippy, test,<br/>cargo-deny, cue vet"]
-        preview["<b>app-preview</b><br/>image pr-12-&lt;sha7&gt;<br/>manifests:pr-12, signed"]
-        appset["<b>Argo ApplicationSet</b><br/>namespace notes-pr-12,<br/>removed with the PR"]
-        ci --> preview --> appset
+        preview["<b>preview.yaml</b> (label preview)<br/>→ app-preview: image<br/>pr-12-&lt;sha7&gt;, manifests:pr-12"]
+        appset["<b>Argo ApplicationSet</b><br/>namespace notes-pr-12,<br/>removed with the label or PR"]
+        ci ~~~ preview --> appset
     end
 
     subgraph main["merge to main"]
@@ -258,7 +259,9 @@ flowchart TB
 The release-please token comes from octo-sts, so the tag it pushes triggers workflows. app-release's
 token for gitops is also from octo-sts (`sub …:environment:staging`, workflow `app-release.yaml`).
 Argo CD syncs impersonating the team's deploy ServiceAccount; prod reaches the cluster the same
-way once the team approves (CODEOWNERS). The preview ApplicationSet is a PR generator. Rollback:
+way once the team approves (CODEOWNERS). Previews are opt-in: the PR label `preview` starts `preview.yaml` (its own workflow, so a label
+event never re-runs or cancels the checks of `ci.yaml`) and the PR generator only takes labelled
+PRs. Rollback:
 revert the PR in `gitops`.
 
 ## Flow: a platform change

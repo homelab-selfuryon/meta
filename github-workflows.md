@@ -9,7 +9,7 @@ can't be changed from a product repository.
 | Workflow              | Caller                           | Does                                                                                                   |
 | --------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `rust-ci.yaml`        | app PR / main                    | `devenv test` (treefmt, clippy, tests, cargo-deny), `cue vet`                                          |
-| `devenv-update.yaml`  | every repo, weekly               | `devenv update` → PR (Renovate has no devenv manager)                                                  |
+| `devenv-update.yaml`  | every repo, weekly               | `devenv update` → PR with auto-merge (Renovate has no devenv manager)                                  |
 | `app-preview.yaml`    | app PR                           | preview image + render + `manifests:pr-<n>`, signed (preview identity)                                 |
 | `app-release.yaml`    | app tag `v*`                     | image, SBOM, provenance, render staging+prod, `manifests:<version>`, sign, PR to `gitops` (auto-merge) |
 | `app-promote.yaml`    | app `workflow_dispatch` on a tag | verify, PR to `gitops` prod (team approves)                                                            |

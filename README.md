@@ -4,6 +4,20 @@ A worked example of how a small company's **platform team** runs Kubernetes with
 defaults, and how product teams (Rust only) ship onto it without an internal developer portal and
 without Helm charts of their own.
 
+## Guides
+
+- **[GitOps architecture and its security decisions](gitops-architecture.md):** pull-only delivery
+  of signed OCI artifacts, who signs what and who checks it, Flux with a ServiceAccount per
+  component, headless Argo CD with per-team impersonation, Kyverno as the last fence, tenant
+  isolation, bot tokens.
+- **[Platform release lifecycle](platform-lifecycle.md):** Renovate → promote → PR checks → signed
+  set artifacts → `gitops` → Flux, rollback, the ordering traps of a set-by-set rollout, how the
+  tooling stays current.
+- **[App release lifecycle](app-lifecycle.md):** onboarding, PR checks and opt-in previews,
+  release-please → staging, promote → prod, rollback, what a team sees and controls.
+
+## Reference
+
 - **Delivery flow and the contracts between repositories:** [delivery.md](delivery.md)
 - **Decisions and open questions:** [decisions.md](decisions.md)
 - **Security baseline:** [security-baseline.md](security-baseline.md)

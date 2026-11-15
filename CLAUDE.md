@@ -4,7 +4,9 @@ Documentation only: no code, no build. It answers **"which repository holds the 
 for?"**, **"how does a change reach the cluster?"** and **"what did we decide, and what is still
 open?"**
 
-- [`README.md`](README.md) — the index: repository table, the picture, the stack.
+- [`README.md`](README.md) — the index: guides, repository table, the picture, the stack.
+- [`gitops-architecture.md`](gitops-architecture.md), [`platform-lifecycle.md`](platform-lifecycle.md),
+  [`app-lifecycle.md`](app-lifecycle.md) — the guides: how and why, linking to the reference below.
 - [`delivery.md`](delivery.md) — flows and the exact contracts between repositories (names,
   artifacts, signing identities, `deploy.cue`, `gitops` layout). Repositories are built against it.
 - `<repo>.md` — one card per repository (`dot-github.md` for `.github`).

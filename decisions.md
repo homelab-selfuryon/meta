@@ -220,6 +220,13 @@ stay, struck through, with the reason. How the decisions fit together end to end
   limits, `BackendTrafficPolicy`. One Gateway per environment in `envoy-gateway-system`, merged
   (`mergeGateways`). Teams only write `HTTPRoute` through `#App`.
 - **2026-11-07 — Databases: CloudNativePG**, one cluster per app per environment.
+- **2026-11-20 — Metrics: VictoriaMetrics single-node, scraping by itself.** One StatefulSet
+  (`victoria-metrics-system`, 90 days, capped at 512 MiB on the one small node) that scrapes the
+  kubelets (node and cAdvisor metrics) with its own `promscrape`: no vmagent, no operator, no
+  node-exporter (it would need host PID and network). First consumer: OpenCost (showback per team
+  and environment, on-prem prices). No UI exposed until human access to web UIs is decided.
+  ~~Prometheus SaaS~~: the free tiers keep 14 days (Grafana Cloud) or cover a few hundred series
+  (Amazon), too little for monthly cost reports, and it adds a token and egress.
 
 ### Secrets
 
@@ -299,8 +306,12 @@ stay, struck through, with the reason. How the decisions fit together end to end
   top of it. Break-glass never depends on it.
 - **Human identity** for web UIs (Argo CD, Grafana, Hubble, OpenBao): GitHub via Dex, Pocket ID,
   Kanidm, or the private network identity only.
-- **Observability:** VictoriaMetrics, VictoriaLogs + Vector, Grafana; API audit log shipped where
-  admins can't delete it.
+- **Observability:** metrics are in place (VictoriaMetrics, 2026-11-20); open: VictoriaLogs + Vector,
+  Grafana (possibly Grafana Cloud as the UI only, over the private network), alerting, node-exporter;
+  API audit log shipped where admins can't delete it.
+- **FinOps:** OpenCost on VictoriaMetrics with on-prem prices (hardware amortization plus power);
+  later Kepler for watts per pod (privileged), rightsizing reports (KRR) and scale-to-zero for
+  previews.
 - **Backups / DR** for etcd, PVs, CloudNativePG (Barman Cloud plugin), OpenBao snapshots; object
   storage (Garage in-cluster vs R2).
 - **Public exposure** of the example apps: Cloudflare Tunnel or private-network only.

@@ -309,8 +309,9 @@ stay, struck through, with the reason. How the decisions fit together end to end
 - **Observability:** metrics are in place (VictoriaMetrics, 2026-11-20); open: VictoriaLogs + Vector,
   Grafana (possibly Grafana Cloud as the UI only, over the private network), alerting, node-exporter;
   API audit log shipped where admins can't delete it.
-- **FinOps:** OpenCost on VictoriaMetrics with on-prem prices (hardware amortization plus power);
-  later Kepler for watts per pod (privileged), rightsizing reports (KRR) and scale-to-zero for
+- **FinOps:** OpenCost on VictoriaMetrics with on-prem prices (hardware amortization plus power)
+  is in place (2026-11-20, placeholder prices; `platform-components/docs/finops.md`). Open: the real
+  prices, Kepler for watts per pod (privileged), rightsizing reports (KRR) and scale-to-zero for
   previews.
 - **Backups / DR** for etcd, PVs, CloudNativePG (Barman Cloud plugin), OpenBao snapshots; object
   storage (Garage in-cluster vs R2).

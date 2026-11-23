@@ -16,7 +16,7 @@ config:
 flowchart TB
     subgraph sources["Source repositories (CI renders, signs, opens a PR)"]
         direction LR
-        pc["<b>platform-components</b><br/>one artifact per<br/>cluster and set"]
+        pc["<b>platform-components</b><br/>one artifact per<br/>cluster, a dir per set"]
         apps["<b>app repositories</b><br/>image + manifests<br/>per version"]
     end
 
@@ -51,7 +51,7 @@ All signatures are cosign keyless (GitHub OIDC → Fulcio); there are no signing
 | Artifact                | Signed in                                                                   | Checked by                                                                                                                             |
 | ----------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | app image and manifests | `github-workflows` `app-release.yaml` (preview: `app-preview.yaml`)         | gitops verify (identity, source repo and tag, signing commit on `github-workflows` main); Kyverno for every pod image, per environment |
-| platform set            | `platform-components/.github/workflows/release.yaml@refs/heads/main` itself | Flux (`OCIRepository` verify)                                                                                                          |
+| platform artifact       | `platform-components/.github/workflows/release.yaml@refs/heads/main` itself | Flux (`OCIRepository` verify)                                                                                                          |
 | `gitops/<cluster>`      | `gitops/.github/workflows/publish.yaml@refs/heads/main` itself              | Flux                                                                                                                                   |
 
 Two choices here are deliberate:

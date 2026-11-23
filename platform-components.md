@@ -15,7 +15,7 @@ Everything cluster-scoped:
   ServiceAccounts, RBAC for the team group.
 
 Each cluster's components are grouped into sets (`rbac`, `system`, `platform`, `policy`,
-`tenants`); each set is released as one signed artifact and pinned in `gitops`. Details:
+`tenants`); the cluster is released as one signed artifact (a directory per set) and pinned in `gitops`. Details:
 [delivery.md](delivery.md#platform-layout-platform-components).
 
 Related: [gitops](gitops.md), [platform-terraform](platform-terraform.md).

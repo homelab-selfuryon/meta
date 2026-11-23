@@ -11,7 +11,7 @@ without Helm charts of their own.
   component, headless Argo CD with per-team impersonation, Kyverno as the last fence, tenant
   isolation, bot tokens.
 - **[Platform release lifecycle](platform-lifecycle.md):** Renovate → promote → PR checks → signed
-  set artifacts → `gitops` → Flux, rollback, the ordering traps of a set-by-set rollout, how the
+  platform artifact → `gitops` → Flux, rollback, the ordering traps of a set-by-set rollout, how the
   tooling stays current.
 - **[App release lifecycle](app-lifecycle.md):** onboarding, PR checks and opt-in previews,
   release-please → staging, promote → prod, rollback, what a team sees and controls.

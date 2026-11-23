@@ -189,12 +189,14 @@ stay, struck through, with the reason. How the decisions fit together end to end
   2026-11-23): it allows holding one set back, which nothing here needs, at the cost of five digests
   that can drift apart.
 - **2026-11-24 — Promotion of component versions follows a policy.** `cue cmd promote` (scripts/promote.py)
-  moves a pin unless a hold (`registry/promotion.cue`, per component, with reason, since and an
-  optional until) or the cluster's `freeze` stops it, and never downgrades (a rollback edits
-  `pins.json`). A new major version, a changed suffix or an unparsable version moves only for
-  components named in the run, a major also needs `allow_major`: a plain promotion from `latest` had
-  moved PostgreSQL from 18 to 19, which needs a data migration. The PR lists what it skipped and
-  why. No soak time and no automerge while there is one cluster.
+  moves a pin unless a hold stops it: per component, with reason, since and an optional until, in
+  `registry/promotion.cue` (every cluster) or in a cluster's config (that cluster only), and never
+  downgrades (a rollback edits `pins.json`). A new major version, a changed suffix or an
+  unparsable version moves only for components named in the run, a major also needs
+  `allow_major`: a plain promotion from `latest` had moved PostgreSQL from 18 to 19, which needs a
+  data migration. The PR lists what it skipped and why. No soak time and no automerge while there
+  is one cluster. ~~A `freeze` of a whole cluster~~ (2026-11-24, replaced the same day): holding
+  single components on one cluster is what is needed.
 - **2026-11-09 — alpha-01 runs without disk encryption for now.** The node was installed
   before the platform design with Secure Boot off; Talos encrypts a volume only when it creates it,
   so TPM-sealed LUKS2 needs a reinstall with Secure Boot on. Bootstrapped on the existing install

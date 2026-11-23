@@ -8,7 +8,8 @@ The repository name GitHub treats specially for the whole org:
 - Default community health files used by every repository without its own: `SECURITY.md`
   (private vulnerability reporting), `CONTRIBUTING.md`, issue and PR templates.
 - `default.json` — the shared Renovate preset (`local>homelab-selfuryon/.github`): actions pinned by
-  digest, automerge for minor/patch (0.x minors treated as breaking), `minimumReleaseAge`, OSV
+  digest, automerge for minor/patch (0.x minors treated as breaking), `minimumReleaseAge` (three days;
+  none for the org's own `homelab-selfuryon/**` packages), OSV
   alerts, custom managers for `cue.mod` dependencies and the reusable workflows.
 
 Related: [meta](README.md), [platform-terraform](platform-terraform.md).

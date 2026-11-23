@@ -9,8 +9,8 @@ between the repositories are in [delivery.md](delivery.md); why things are this 
 
 `platform-components` describes every cluster in CUE: its components (a chart rendered with
 `helm template` plus typed values, and/or plain objects), the Kyverno policies, and the teams. CI
-renders a cluster into **sets**, applied in a fixed order, each published as **one signed OCI
-artifact per cluster and set**:
+renders a cluster into **sets**, applied in a fixed order, and publishes them as **one signed OCI
+artifact per cluster**, a directory per set:
 
 | Set        | Contents                                                                                          |
 | ---------- | ------------------------------------------------------------------------------------------------- |
@@ -20,8 +20,8 @@ artifact per cluster and set**:
 | `platform` | Argo CD, Gateways, ClusterIssuers, the policies' ClusterRoles, everything that uses the operators |
 | `tenants`  | one component per team: namespaces, quotas, deploy ServiceAccounts, AppProjects                   |
 
-A set's artifact tag is a hash of its content, so an unchanged set is not pushed again and a
-release only moves the digests of the sets that changed.
+The artifact tag is a hash of its content, so an unchanged platform is not pushed again. One artifact
+means one digest to move or revert, and every set always comes from the same render.
 
 ## From a commit to the cluster
 
@@ -50,7 +50,7 @@ flowchart TB
 
     subgraph release["Merge to main: release.yaml"]
         direction LR
-        push["changed sets pushed,<br/>signed (cosign keyless)"]
+        push["cluster artifact pushed,<br/>signed (cosign keyless)"]
         gpr["PR to gitops:<br/>releases.json<br/>platform approves"]
         push --> gpr
     end
@@ -76,13 +76,13 @@ flowchart TB
    run the rendered Kyverno policies over the render (once per component, as its Flux
    ServiceAccount, so admission rules on `request.userInfo` are exercised). A PR comment shows the
    object-level diff against the render of `main`, taken from that commit's CI artifact.
-3. **Release** (`release.yaml`, push to `main`): render again, push the changed sets, sign them
+3. **Release** (`release.yaml`, push to `main`): render again, push the cluster artifact, sign it
    with cosign keyless in this workflow's own job, so the certificate subject is
    `platform-components/.github/workflows/release.yaml@refs/heads/main`. Then a PR to `gitops`
    moves `clusters/<cluster>/releases.json` (octo-sts identity `components-release`). The platform
    approves it; it never auto-merges.
 4. **Delivery.** Merging in `gitops` publishes the cluster's artifact. Flux verifies its signature,
-   then each set's `OCIRepository` signature, and applies the sets in order (`dependsOn`,
+   then the platform `OCIRepository` signature, and applies the sets in order (`dependsOn`,
    `wait: true`). Inside a set every component is its own `Kustomization` with its own
    ServiceAccount (see [gitops-architecture.md](gitops-architecture.md)).
 5. **Next cluster:** `promote -t from=<cluster> -t to=<next>`, the same path again.
@@ -91,7 +91,7 @@ flowchart TB
 
 Revert the release PR in `gitops`: the previous digests are still in GHCR and still signed. To
 take a version back out of the inputs as well, revert the `pins.json` change in
-`platform-components` (it releases again, with the old content and so the old set hash).
+`platform-components` (it releases again, with the old content and so the old hash).
 
 ## Ordering traps (learned on alpha-01)
 

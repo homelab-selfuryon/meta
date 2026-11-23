@@ -178,6 +178,16 @@ stay, struck through, with the reason. How the decisions fit together end to end
   `wait: true` a set is ready only when all its components are, so with `policy` after `platform`
   a component waiting for a secret (external-dns at bootstrap) kept the policies out of the
   cluster. ClusterIssuers and Gateways moved to `platform`, next to the operators they need.
+- **2026-11-23 — One platform artifact per cluster, a directory per set.**
+  `platform-components/<cluster>` holds `<set>/flux` and `<set>/components/<name>` for every set;
+  gitops pins one digest (`releases.json`), Flux has one `OCIRepository` `platform-components`, and
+  the set Kustomizations (`path: ./<set>/flux`) keep the order. One render means one snapshot: a
+  component and its ServiceAccount in `rbac` always arrive together, and a rollback is one revert.
+  The cost: every release changes the source of every component Kustomization, so all of them
+  reconcile (server-side apply leaves unchanged objects alone); Flux's `ArtifactGenerator` can split
+  the source per path if that gets noisy. ~~One artifact per set and cluster~~ (2026-11-07 to
+  2026-11-23): it allows holding one set back, which nothing here needs, at the cost of five digests
+  that can drift apart.
 - **2026-11-09 — alpha-01 runs without disk encryption for now.** The node was installed
   before the platform design with Secure Boot off; Talos encrypts a volume only when it creates it,
   so TPM-sealed LUKS2 needs a reinstall with Secure Boot on. Bootstrapped on the existing install

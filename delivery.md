@@ -27,14 +27,14 @@ All OCI artifacts are pushed with `oras`, one layer of media type
 `layerSelector` and by Argo CD OCI sources), signed with cosign keyless (issuer
 `https://token.actions.githubusercontent.com`). Clusters always reference them by digest.
 
-| Artifact                              | Tag                                  | Content                                                                                                                   | Signed by workflow                                                           | Source repo in the certificate |
-| ------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------ |
-| `<app>` (image)                       | `<version>`, preview `pr-<n>-<sha7>` | distroless image (Containerfile), SBOM + provenance attestations                                                          | `app-release.yaml` / `app-preview.yaml`                                      | the app                        |
-| `<app>/manifests`                     | `<version>`                          | `staging/manifests.yaml`, `prod/manifests.yaml`                                                                           | `app-release.yaml`                                                           | the app                        |
-| `<app>/manifests`                     | `pr-<n>`                             | `preview/manifests.yaml`                                                                                                  | `app-preview.yaml`                                                           | the app                        |
-| `platform-components/<cluster>-<set>` | content hash                         | `kustomizations.yaml` + `<component>/manifests.yaml`                                                                      | `platform-components/.github/workflows/release.yaml` (own job, not reusable) | `platform-components`          |
-| `gitops/<cluster>`                    | `main` + git SHA                     | `flux/` (set OCIRepositories + Kustomizations, `argo-apps`), `argo/` (Applications, ApplicationSets)                      | `gitops/.github/workflows/publish.yaml` (own job, not reusable)              | `gitops`                       |
-| `platform-kit` (CUE module)           | `v<semver>` (git tag)                | `cue mod publish` of module `github.com/homelab-selfuryon/platform-kit@v0` → `ghcr.io/homelab-selfuryon/cue/platform-kit` | `platform-kit` own `release.yaml` (`GITHUB_TOKEN`, `packages: write`)        | —                              |
+| Artifact                        | Tag                                  | Content                                                                                                                   | Signed by workflow                                                           | Source repo in the certificate |
+| ------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------ |
+| `<app>` (image)                 | `<version>`, preview `pr-<n>-<sha7>` | distroless image (Containerfile), SBOM + provenance attestations                                                          | `app-release.yaml` / `app-preview.yaml`                                      | the app                        |
+| `<app>/manifests`               | `<version>`                          | `staging/manifests.yaml`, `prod/manifests.yaml`                                                                           | `app-release.yaml`                                                           | the app                        |
+| `<app>/manifests`               | `pr-<n>`                             | `preview/manifests.yaml`                                                                                                  | `app-preview.yaml`                                                           | the app                        |
+| `platform-components/<cluster>` | content hash                         | per set: `<set>/flux/kustomizations.yaml` + `<set>/components/<component>/manifests.yaml`                                 | `platform-components/.github/workflows/release.yaml` (own job, not reusable) | `platform-components`          |
+| `gitops/<cluster>`              | `main` + git SHA                     | `flux/` (platform OCIRepository, set Kustomizations, `argo-apps`), `argo/` (Applications, ApplicationSets)                | `gitops/.github/workflows/publish.yaml` (own job, not reusable)              | `gitops`                       |
+| `platform-kit` (CUE module)     | `v<semver>` (git tag)                | `cue mod publish` of module `github.com/homelab-selfuryon/platform-kit@v0` → `ghcr.io/homelab-selfuryon/cue/platform-kit` | `platform-kit` own `release.yaml` (`GITHUB_TOKEN`, `packages: write`)        | —                              |
 
 CUE modules have their own prefix: `CUE_REGISTRY` (an inline config with `stripPrefix`) maps the module path
 `github.com/homelab-selfuryon/<repo>` to `ghcr.io/homelab-selfuryon/cue/<repo>`, so any repository can
@@ -51,11 +51,11 @@ Certificate identities:
   (Build Signer Digest, OID 1.3.6.1.4.1.57264.1.10) to be on `github-workflows` main, since a fork's
   commit is reachable by SHA through the parent repository. Preview artifacts carry a
   different workflow identity, so nothing that checks for `app-release.yaml` admits them.
-- **Artifacts Flux verifies** (`gitops/<cluster>`, platform sets) are signed in a job defined in the
+- **Artifacts Flux verifies** (`gitops/<cluster>`, `platform-components/<cluster>`) are signed in a job defined in the
   publishing repository itself, not in a reusable workflow, so the certificate subject carries that
   repository and its ref:
   `^https://github\.com/homelab-selfuryon/gitops/\.github/workflows/publish\.yaml@refs/heads/main$`
-  (`platform-components/.../release.yaml@refs/heads/main` for sets). Flux matches only issuer and
+  (`platform-components/.../release.yaml@refs/heads/main` for the platform). Flux matches only issuer and
   subject; with a reusable workflow the subject would name `github-workflows`, and a workflow on any
   branch of `gitops` could produce an artifact Flux accepts. Pinning `@refs/heads/main` closes that:
   only reviewed `main` can publish.
@@ -135,7 +135,7 @@ registry has none.
 cue.mod/                           module github.com/homelab-selfuryon/gitops@v0
 schema/                            #Cluster, #App registration, #Version, render → Flux/Argo objects
 clusters/<cluster>/cluster.cue     the cluster: name, artifact identities
-clusters/<cluster>/releases.json   {"<set>": {"version": "…", "digest": "sha256:…"}}   ← platform-components PRs
+clusters/<cluster>/releases.json   {"version": "…", "digest": "sha256:…"} (platform artifact)   ← platform-components PRs
 apps/<team>/<app>/app.cue      registration: team, repo, cluster, preview on/off   ← platform-owned
 apps/<team>/<app>/staging.json     {"version": "v1.2.0", "digest": "sha256:…"}          ← release PR, auto-merged
 apps/<team>/<app>/prod.json        same shape                                          ← promote PR, team approves
@@ -143,8 +143,8 @@ apps/<team>/<app>/prod.json        same shape                                   
 .github/chainguard/*.sts.yaml      octo-sts trust policies
 ```
 
-`cue cmd render` produces per cluster: for every set in `releases.json` an `OCIRepository`
-(digest, cosign verify) and a `Kustomization` that applies the set's `kustomizations.yaml`; for every
+`cue cmd render` produces per cluster: for the release in `releases.json` one `OCIRepository`
+(digest, cosign verify) and per set a `Kustomization` that applies `<set>/flux/kustomizations.yaml`; for every
 app and environment an Argo CD `Application` (project `<team>`, source
 `oci://ghcr.io/homelab-selfuryon/<app>/manifests` at the digest, path `<env>`, destination
 `<team>-<env>`, automated sync with prune and self-heal); for every app with preview an
@@ -164,11 +164,11 @@ Components are CUE packages; a chart component is rendered with `helm template` 
 or listed as a `HelmRelease` exception (variant A: on alpha-01 Kyverno; the `HelmRelease` and its
 source are in `flux-system`, the component's Kustomization has no `targetNamespace`). Each cluster
 resolves component versions from `registry/latest.json` (Renovate) and its own `pins.json`, groups
-components into **sets**, and each set becomes one artifact:
+components into **sets**; the cluster becomes one artifact with a directory per set:
 
-- `kustomizations.yaml` — one Flux `Kustomization` per component (path `./<component>`, its own
+- `<set>/flux/kustomizations.yaml` — one Flux `Kustomization` per component (path `./<set>/components/<name>`, its own
   `serviceAccountName: component-<name>`, `targetNamespace`, `dependsOn`), all in `flux-system`.
-- `<component>/manifests.yaml` — the component's objects.
+- `<set>/components/<name>/manifests.yaml` — the component's objects.
 
 Sets on `alpha-01`, in order: `rbac` (component ServiceAccounts, ClusterRoles from the whitelists,
 the admission policies binding them — privileged), `system` (Cilium, Flux Operator, Kyverno, Gateway
@@ -180,17 +180,17 @@ namespaces, quotas, AppProjects, deploy ServiceAccounts, RBAC for the team group
 
 ### Flux object names (the contract between `platform-components` and `gitops`)
 
-Set artifact layout: `flux/kustomizations.yaml` (+ `flux/kustomization.yaml` listing it) and
-`components/<name>/` (each with a `kustomization.yaml`). All Flux objects live in `flux-system`.
+Artifact layout, per set: `<set>/flux/kustomizations.yaml` (+ `<set>/flux/kustomization.yaml` listing it) and
+`<set>/components/<name>/` (each with a `kustomization.yaml`). All Flux objects live in `flux-system`.
 
-| Object                                                                                          | Name        | ServiceAccount                                                 | Created by    |
-| ----------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------- | ------------- |
-| OCIRepository for `gitops`                                                                      | `gitops`    | —                                                              | bootstrap     |
-| Root Kustomization (path `./flux` of the gitops artifact)                                       | `gitops`    | `gitops-root`                                                  | bootstrap     |
-| OCIRepository per set                                                                           | `set-<set>` | —                                                              | gitops render |
-| Kustomization per set (path `./flux`, `wait: true`)                                             | `set-<set>` | `gitops-root`                                                  | gitops render |
-| Kustomization per component (path `./components/<name>`)                                        | `<name>`    | `component-<name>`, or `flux-privileged` if `privileged: true` | set artifact  |
-| Kustomization for Argo objects (path `./argo` of the gitops artifact, depends on `set-tenants`) | `argo-apps` | `argo-apps`                                                    | gitops render |
+| Object                                                                                          | Name                  | ServiceAccount                                                 | Created by        |
+| ----------------------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------- | ----------------- |
+| OCIRepository for `gitops`                                                                      | `gitops`              | —                                                              | bootstrap         |
+| Root Kustomization (path `./flux` of the gitops artifact)                                       | `gitops`              | `gitops-root`                                                  | bootstrap         |
+| OCIRepository of the platform artifact                                                          | `platform-components` | —                                                              | gitops render     |
+| Kustomization per set (path `./<set>/flux`, `wait: true`)                                       | `set-<set>`           | `gitops-root`                                                  | gitops render     |
+| Kustomization per component (path `./<set>/components/<name>`)                                  | `<name>`              | `component-<name>`, or `flux-privileged` if `privileged: true` | platform artifact |
+| Kustomization for Argo objects (path `./argo` of the gitops artifact, depends on `set-tenants`) | `argo-apps`           | `argo-apps`                                                    | gitops render     |
 
 ServiceAccounts in `flux-system`: `flux-privileged` (cluster-admin) and `gitops-root` (may create
 `OCIRepository` and `Kustomization` in `flux-system` only) come from bootstrap; `component-<name>`
@@ -283,7 +283,7 @@ flowchart TB
 
     subgraph rel["merge"]
         direction LR
-        release["<b>components-release</b><br/>render, push changed<br/>sets, sign"]
+        release["<b>components-release</b><br/>render, push the<br/>cluster artifact, sign"]
         gpr["<b>PR to gitops</b><br/>alpha-01/releases.json<br/>platform approves"]
         release --> gpr
     end
@@ -370,10 +370,10 @@ as `devenv shell -- <cmd>`, so CI and laptops use the same versions. No flakes.
 | `cue cmd promote -t to=<c> [-t from=<latest\|c>] [-t components=a,b]` | updates `clusters/<c>/pins.json`                                         |
 | `policies/` render in `out/<c>/policy/components/*`                   | the Kyverno policies the CI runs with `kyverno apply`                    |
 
-Set artifact tag = content hash of `out/<c>/<set>/`: sha256 of the uncompressed
-`tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C out/<c>/<set> -cf - .`, first
+Artifact tag = content hash of the set directories of `out/<c>/`: sha256 of the uncompressed
+`tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C out/<c> -cf - <sets…>`, first
 16 hex characters. An
-unchanged set is never re-pushed.
+unchanged platform is never re-pushed.
 
 ### Cluster-side names the app render depends on
 

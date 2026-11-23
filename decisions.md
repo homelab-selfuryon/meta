@@ -194,9 +194,17 @@ stay, struck through, with the reason. How the decisions fit together end to end
   downgrades (a rollback edits `pins.json`). A new major version, a changed suffix or an
   unparsable version moves only for components named in the run, a major also needs
   `allow_major`: a plain promotion from `latest` had moved PostgreSQL from 18 to 19, which needs a
-  data migration. The PR lists what it skipped and why. No soak time and no automerge while there
-  is one cluster. ~~A `freeze` of a whole cluster~~ (2026-11-24, replaced the same day): holding
-  single components on one cluster is what is needed.
+  data migration. The PR lists what it skipped and why. No soak time. ~~A `freeze` of a whole
+  cluster~~ (2026-11-24, replaced the same day): holding single components on one cluster is what
+  is needed.
+- **2026-11-24 — Promotion to alpha-01 runs and merges by itself.** A change of
+  `registry/latest.json` on `main` (a merged Renovate PR) runs Promote to alpha-01, and promote PRs
+  auto-merge on green checks unless the run used `allow_major` or `ignore_holds`. alpha-01 is a test
+  bench: the policy (holds, no downgrades, majors by name) is the gate and the render checks are the
+  review. The gitops release PR that follows is still merged by hand.
+- **2026-11-24 — The org's own packages skip Renovate's release-age soak.** `homelab-selfuryon/**`
+  (platform-kit, github-workflows, CUE modules) gets `minimumReleaseAge: null` in the shared preset;
+  everything else still waits three days. Every repository extends the preset, meta included.
 - **2026-11-09 — alpha-01 runs without disk encryption for now.** The node was installed
   before the platform design with Secure Boot off; Talos encrypts a volume only when it creates it,
   so TPM-sealed LUKS2 needs a reinstall with Secure Boot on. Bootstrapped on the existing install

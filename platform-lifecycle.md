@@ -69,7 +69,9 @@ flowchart TB
 1. **Inputs.** Renovate bumps chart versions and digests in `registry/latest.json` (field order
    there is a Renovate regex contract). Nothing reaches a cluster from there directly: the
    **Promote** workflow (`cue cmd promote -t to=<cluster>`) copies versions into that cluster's
-   `pins.json` and opens a PR whose body lists every component's change, from → to. Other changes
+   `pins.json` and opens a PR whose body lists every component's change, from → to, and what it
+   skipped and why: held components (`registry/promotion.cue`), a frozen cluster (`freeze` in its
+   config), downgrades (never), and new major versions unless named with `allow_major`. Other changes
    (a component, a policy, a team file) are ordinary PRs.
 2. **Pull request checks** (`components-check.yaml` from `github-workflows`): render every
    cluster, check every cluster-scoped object against its component's whitelist, kubeconform, and

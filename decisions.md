@@ -190,7 +190,7 @@ stay, struck through, with the reason. How the decisions fit together end to end
   that can drift apart.
 - **2026-11-24 — Promotion of component versions follows a policy.** `cue cmd promote` (scripts/promote.py)
   moves a pin unless a hold stops it: per component, with reason, since and an optional until, in
-  `registry/promotion.cue` (every cluster) or in a cluster's config (that cluster only), and never
+  `registry/holds.cue` (every cluster) or `clusters/<c>/holds.cue` (that cluster only), and never
   downgrades (a rollback edits `pins.json`). A new major version, a changed suffix or an
   unparsable version moves only for components named in the run, a major also needs
   `allow_major`: a plain promotion from `latest` had moved PostgreSQL from 18 to 19, which needs a

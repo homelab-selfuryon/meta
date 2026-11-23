@@ -367,7 +367,7 @@ as `devenv shell -- <cmd>`, so CI and laptops use the same versions. No flakes.
 | `cue cmd render -t cluster=<c>`                                       | `out/<c>/<set>/{flux,components}/…` for every set (runs `helm template`) |
 | `cue cmd check -t cluster=<c>`                                        | whitelist check of the render; non-zero exit on violation                |
 | `cue cmd bootstrap -t cluster=<c>`                                    | `out/<c>/bootstrap.yaml`                                                 |
-| `cue cmd promote -t to=<c> [-t from=<latest\|c>] [-t components=a,b]` | updates `clusters/<c>/pins.json`                                         |
+| `cue cmd promote -t to=<c> [-t from=<latest\|c>] [-t components=a,b]` | updates `clusters/<c>/pins.json` under the promotion policy              |
 | `policies/` render in `out/<c>/policy/components/*`                   | the Kyverno policies the CI runs with `kyverno apply`                    |
 
 Artifact tag = content hash of the set directories of `out/<c>/`: sha256 of the uncompressed

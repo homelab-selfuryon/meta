@@ -12,7 +12,7 @@ The paved road product teams consume:
 2. **devenv modules** (`devenv/`), imported from `devenv.yaml` of every repository, in three layers:
    - `base.nix` — git hooks (ripsecrets, detect-private-keys, treefmt), treefmt (nixfmt, prettier,
      taplo), workflow linters. Every repository.
-   - `cue.nix` — base + CUE (option for an upstream pre-release binary), `CUE_REGISTRY`, `cue fmt`.
+   - `cue.nix` — base + CUE (the upstream release binary by default, v0.18.0), `CUE_REGISTRY`, `cue fmt`.
      `platform-components`, `gitops`, `github-workflows`.
    - `rust-app.nix` — cue + Rust toolchain from `rust-toolchain.toml`, cargo-deny, clippy, optional
      local Postgres, the app's `devenv test`. Apps.

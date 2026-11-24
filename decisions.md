@@ -59,7 +59,12 @@ stay, struck through, with the reason. How the decisions fit together end to end
   from `.github`. After creation the Cargo files belong to the team. No template sync tool.
 - **2026-11-08 — CUE 0.18 pre-release everywhere:** language version `v0.18.0`, the latest
   upstream release candidate binary from devenv (`v0.18.0-rc.4` today), the same in CI through
-  `devenv shell`. Back to the nixpkgs release once 0.18.0 is out.
+  `devenv shell`. Back to the nixpkgs release once 0.18.0 is out. (Superseded on 2026-11-24, below.)
+- **2026-11-24 — CUE v0.18.0 release binary:** v0.18.0 (the first LTS release) replaces rc.4 as
+  the default of `platformKit.cue.version` (platform-kit v0.1.5); every repository has it through
+  Renovate. Still the upstream binary with fixed hashes: nixpkgs does not ship v0.18 yet. Back to
+  nixpkgs when it does. The `cue cmd` performance fixes the Check workflow waits for
+  (platform-components#36) are on CUE master for v0.19.
 - **2026-11-08 — devenv everywhere, no Nix flakes; images from a Containerfile.** Every repository
   gets its tools from devenv (`devenv.nix`, `devenv.yaml`, `devenv.lock`); CI runs the same commands
   through `devenv shell`, so laptops and CI use the same versions. Apps import a devenv module

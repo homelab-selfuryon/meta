@@ -296,6 +296,15 @@ stay, struck through, with the reason. How the decisions fit together end to end
   per app~~ — cross-namespace credentials and network paths, a shared blast radius, and dynamic
   per-PR databases in a cluster the team does not own (`Database` objects must live next to the
   Cluster).
+- **2026-11-25 — A PostgreSQL major upgrade runs in three steps, with both majors in the catalog.**
+  A catalog holds one image per major, and a tenant `Cluster` asks for the major in platform-kit's
+  `#Cluster.postgresMajor`; a catalog without that major stops CloudNativePG from reconciling the
+  database (the first try at 18 → 19 was rolled back for this). So: (1) platform-components adds
+  the new major to the catalog and keeps the old one as a `postgresql-<major>` pin; (2) a
+  platform-kit release raises `postgresMajor`, and as each app takes it CloudNativePG upgrades the
+  database in place (`pg_upgrade`); (3) once every app runs the new major, the old pin goes.
+  ~~Moving the catalog and the apps in one release~~ — clusters and apps are released separately,
+  so one of them always runs ahead.
 
 ### Access
 

@@ -392,6 +392,45 @@ unchanged platform is never re-pushed.
 | OpenBao platform roles                       | `platform-<cluster>-cert-manager` → SA `cert-manager-system/secret-sync`; `platform-<cluster>-external-dns` → SA `external-dns-system/external-dns`                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | Platform namespaces                          | created by the `rbac` set (components never create their own); `openbao-system`, `openbao-csi-provider-system`; `internal-ca` ClusterIssuer is in `system` (OpenBao needs TLS before `policy`)                                                                                                                                                                                                                                                                                                                                                                           |
 
+## Catalog (`catalog.json`)
+
+Planned (2026-11-26): the `catalog` repository generates one `catalog.json` with every team and app,
+defaults resolved, and opens a PR carrying it in each repository below. Until then the flow under
+"Flow: a new app" holds.
+
+```json
+{
+  "teams": {
+    "notes": {
+      "description": "...",
+      "github": { "permission": "maintain" },
+      "quota": { "staging": { ... }, "prod": { ... }, "preview": { ... } }
+    }
+  },
+  "apps": {
+    "notes-api": {
+      "team": "notes",
+      "description": "...",
+      "repo": "homelab-selfuryon/notes-api",
+      "tier": "tier-3",
+      "lifecycle": "active",
+      "envs": ["preview", "staging", "prod"],
+      "cluster": "alpha-01",
+      "preview": true
+    }
+  }
+}
+```
+
+| Repository            | Reads                                                                     | Replaces                                        |
+| --------------------- | ------------------------------------------------------------------------- | ----------------------------------------------- |
+| `platform-terraform`  | teams (GitHub team, permission), apps (repository, environments, OpenBao) | `teams.json`, `apps.json`                       |
+| `platform-components` | teams (quotas → namespaces, RBAC, AppProjects)                            | the data in `teams/<team>.cue`                  |
+| `gitops`              | apps (registration: name, team, repo, cluster, preview), teams            | hand-written `app.cue`, `CODEOWNERS` team lines |
+
+Order: merge and apply `platform-terraform` first (the GitHub team and repository must exist), then
+the others. Catalog CI does not wait for it.
+
 ## Flow: a new app (onboarding)
 
 Members can't create repositories, so a new app starts as a PR to the platform:

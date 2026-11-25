@@ -36,6 +36,21 @@ stay, struck through, with the reason. How the decisions fit together end to end
   every merge was a bypass, checks included.
   ~~`org`, `github-configuration`, `github-config`~~ — one repository for all provider config
   instead of one per provider.
+- **2026-11-26 — Teams and apps are declared once, in the `catalog` repository.** A directory per
+  team (`teams/<team>/team.cue`, one `<app>.cue` per app) on a CUE schema with defaults; `cue cmd
+generate` resolves it into one `catalog.json`. On merge, catalog CI opens a PR carrying that file
+  in `platform-terraform` (GitHub team, repositories, environments, OpenBao roles),
+  `platform-components` (namespaces, quotas, RBAC, AppProjects) and `gitops` (app registration,
+  `CODEOWNERS`), without waiting for any of them; the owner merges and applies `platform-terraform`
+  first, then the rest. Each repository validates the file with its own checks. Before, a team
+  with one app took four or five PRs in three repositories (`teams.json`, `apps.json`,
+  `teams/<team>.cue`, the registration PR, `CODEOWNERS`), in the right order, and nothing checked
+  that they agreed. Teams change their own directory; schema, quota sizes and quota overrides need
+  the platform. ~~One hand-edited `catalog.json`~~ — one file for every team, no defaults, no
+  types. ~~A CUE module the repositories import, bumped by Renovate~~ — Renovate took hours to see a
+  new tag (2026-11-25), and `platform-terraform` cannot read CUE. ~~Keep it in
+  `platform-terraform`~~ (HCL, applied by hand) ~~or `platform-kit`~~ (its releases are the app
+  schema, not org data).
 - **2026-11-07 — `.github` repository kept** for what only that name does: org profile
   (`profile/README.md`), default community health files, workflow templates. It also holds the
   shared Renovate preset (`default.json`). Docs live in `meta`.
@@ -362,4 +377,6 @@ stay, struck through, with the reason. How the decisions fit together end to end
 
 ### Org
 
+- **Terrakube for `platform-terraform`:** plan on the PR, apply on merge, instead of the owner's
+  local `tofu apply` with local state. The catalog's PRs stay the same; only who applies changes.
 - **2FA requirement:** enable in the UI (not settable via the API).

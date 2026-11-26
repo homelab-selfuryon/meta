@@ -55,6 +55,24 @@ generate` resolves it into one `catalog.json`. On merge, catalog CI opens a PR c
   `{}` version files and the `CODEOWNERS` team lines are derived by a script there
   (`gitops_checks.py sync`) and checked, so the `app.cue` registration and `register.yaml` went.
   ~~Generate the gitops files in the catalog~~ — the catalog would have to know gitops' layout.
+- **2026-11-26 — The catalog holds facts; each system holds its own settings.** A field belongs in
+  the catalog when it is a fact about the org or more than one repository must read it the same
+  way: teams (`description`, `tenant`), apps (`team`, `description`, `tier`, `lifecycle`, `envs`,
+  `cluster`). A setting only one system reads lives in that system's repository: quotas and team
+  sizes in `platform-components` (`teams/schema.cue`), the GitHub permission in
+  `platform-terraform` (`github/locals.tf`). There, each team or app from the catalog view gets the
+  system's defaults, and a team that needs something else gets more specific values next to them
+  (in CUE unified with the defaults, not an override layer); such values may only name teams and
+  apps the catalog has, so they fail once the catalog drops them. Classes are facts (`tier`): the
+  catalog says what an app is, each system decides what that means for it. Every repository honours
+  the same `envs` (GitHub environments, OpenBao roles, Applications) and gitops refuses a `cluster`
+  it does not have. People, when an identity provider arrives: members live in the IdP (managed by
+  Terraform), not in the catalog; teams map to IdP groups, and every system grants access to
+  groups from the OIDC `groups` claim, never to people; what one app needs (its OIDC client and
+  roles) is declared in the app's repository. ~~Quotas and sizes in the catalog, with
+  per-team overrides there~~ — one system's setting, and every quota change touched the catalog.
+  ~~Local edits of catalog values in a consumer~~ — two sources of truth that disagree. ~~Members
+  in the catalog~~ — people belong to the IdP, and the repository is public.
 - **2026-11-07 — `.github` repository kept** for what only that name does: org profile
   (`profile/README.md`), default community health files, workflow templates. It also holds the
   shared Renovate preset (`default.json`). Docs live in `meta`.

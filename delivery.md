@@ -407,30 +407,30 @@ view first.
   "teams": {
     "notes": {
       "description": "...",
-      "github": { "permission": "maintain" },
-      "quota": { "staging": { ... }, "prod": { ... }, "preview": { ... } }
+      "tenant": true
     }
   },
   "apps": {
     "notes-api": {
       "team": "notes",
       "description": "...",
-      "repo": "homelab-selfuryon/notes-api",
       "tier": "tier-3",
       "lifecycle": "active",
       "envs": ["preview", "staging", "prod"],
-      "cluster": "alpha-01",
-      "preview": true
+      "cluster": "alpha-01"
     }
   }
 }
 ```
 
-| Repository            | Its view (`views.cue`)                                                                                        | Where                                                                                       |
-| --------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `platform-terraform`  | every team: `description`, `github.permission`; every app: `team`, `description`, `tier`, `lifecycle`, `envs` | `catalog.json` (root), read by `github/` and `openbao/`                                     |
-| `platform-components` | tenant teams: `tenant`, `quota`                                                                               | `teams/catalog.json`, embedded by `teams/catalog.cue`                                       |
-| `gitops`              | every app: `team`, `repo`, `cluster`, `preview`                                                               | `catalog.json` (root), embedded by `registry.cue`; `gitops_checks.py sync` derives the rest |
+| Repository            | Its view (`views.cue`)                                                                   | What it adds of its own                                  | Where                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `platform-terraform`  | every team: `description`; every app: `team`, `description`, `tier`, `lifecycle`, `envs` | team permissions (`github/locals.tf`), roles             | `catalog.json` (root), read by `github/` and `openbao/`                                     |
+| `platform-components` | tenant teams (names)                                                                     | size and quotas (`teams/schema.cue`, `teams/<team>.cue`) | `teams/catalog.json`, embedded by `teams/catalog.cue`                                       |
+| `gitops`              | every app: `team`, `envs`, `cluster`                                                     | repo (= app name), preview (from `envs`), the clusters   | `catalog.json` (root), embedded by `registry.cue`; `gitops_checks.py sync` derives the rest |
+
+Only facts are in the catalog (decisions.md, 2026-11-26): a setting of one system is that system's
+default plus the values one team needs, in its own repository.
 
 Each repository keeps the file byte for byte as generated (prettier skips it). In `gitops` a catalog
 PR also carries what `scripts/gitops_checks.py sync` derives: `{}` version files of new apps, the

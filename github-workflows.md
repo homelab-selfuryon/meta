@@ -14,7 +14,7 @@ can't be changed from a product repository.
 | `app-release.yaml`    | app tag `v*`                     | image, SBOM, provenance, render staging+prod, `manifests:<version>`, sign, PR to `gitops` (auto-merge) |
 | `app-promote.yaml`    | app `workflow_dispatch` on a tag | verify, PR to `gitops` prod (team approves)                                                            |
 | `release-please.yaml` | app main                         | release PR and tag, token from octo-sts                                                                |
-| `app-register.yaml`   | app main                         | registration PR to `gitops`                                                                            |
+| `app-register.yaml`   | nobody (since 2026-11-26)        | registration PR to `gitops`; unused since apps come from the catalog, to be removed                    |
 | `lint-workflows.yaml` | everyone                         | zizmor, actionlint                                                                                     |
 
 Only workflows shared by several repositories live here. The `gitops` PR checks

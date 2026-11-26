@@ -45,16 +45,17 @@ flowchart TB
 
 ## 1. A new app
 
-Members cannot create repositories. A PR to `platform-terraform` adds the app to `apps.json`; the
-owner's `tofu apply` creates the repository from `rust-app-template` with its custom properties
-(`owner-team`, `kind=app`), team access, the `staging`/`prod` environments (tags `v*` only), the
-rulesets and the label `preview`, and in OpenBao the app's roles per environment. The team's first
-PR renames the template; on merge, `register.yaml` opens the registration PR in `gitops`, which
-checks that `deploy.cue`'s team matches the repository's `owner-team`. Details:
+Members cannot create repositories. A PR to [`catalog`](catalog.md) adds
+`teams/<team>/<app>.cue`; its `catalog.json` goes to `platform-terraform`, `platform-components`
+and `gitops`. The owner's `tofu apply` creates the repository from `rust-app-template` with its
+custom properties (`owner-team`, `kind=app`), team access, the `staging`/`prod` environments (tags
+`v*` only), the rulesets and the label `preview`, and in OpenBao the app's roles per environment;
+the `gitops` PR adds the `{}` version files, and its checks compare the team with the repository's
+`owner-team`. The team's first PR renames the template. Details:
 [delivery.md](delivery.md#flow-a-new-app-onboarding).
 
-A new team is a file in `platform-components/teams/` (namespaces, quotas, AppProjects, deploy
-ServiceAccounts) plus `teams.json` in `platform-terraform`.
+A new team is `teams/<team>/team.cue` in `catalog`: the GitHub team, and in `platform-components`
+its namespaces, quotas, AppProjects and deploy ServiceAccounts.
 
 ## 2. Pull requests
 

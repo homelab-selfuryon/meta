@@ -395,9 +395,12 @@ unchanged platform is never re-pushed.
 
 ## Catalog (`catalog.json`)
 
-Planned (2026-11-26): the `catalog` repository generates one `catalog.json` with every team and app,
-defaults resolved, and opens a PR carrying it in each repository below. Until then the flow under
-"Flow: a new app" holds.
+The `catalog` repository generates `catalog.json` with every team and app, defaults resolved
+(below), and from it one **view** per repository that reads it (`views.cue`): only the fields that
+repository reads, at the same paths. Each repository receives its view under the name
+`catalog.json` (`teams/catalog.json` in `platform-components`), never the whole catalog, so a change
+outside a repository's view opens no PR there. A field a repository starts to read is added to its
+view first.
 
 ```json
 {
@@ -423,11 +426,11 @@ defaults resolved, and opens a PR carrying it in each repository below. Until th
 }
 ```
 
-| Repository            | Reads                                                                     | Where                                                                                       |
-| --------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `platform-terraform`  | teams (GitHub team, permission), apps (repository, environments, OpenBao) | `catalog.json` (root), read by `github/` and `openbao/`                                     |
-| `platform-components` | teams (quotas → namespaces, RBAC, AppProjects)                            | `teams/catalog.json`, embedded by `teams/catalog.cue`                                       |
-| `gitops`              | apps (name, team, repo, cluster, preview), teams with apps                | `catalog.json` (root), embedded by `registry.cue`; `gitops_checks.py sync` derives the rest |
+| Repository            | Its view (`views.cue`)                                                                                        | Where                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `platform-terraform`  | every team: `description`, `github.permission`; every app: `team`, `description`, `tier`, `lifecycle`, `envs` | `catalog.json` (root), read by `github/` and `openbao/`                                     |
+| `platform-components` | tenant teams: `tenant`, `quota`                                                                               | `teams/catalog.json`, embedded by `teams/catalog.cue`                                       |
+| `gitops`              | every app: `team`, `repo`, `cluster`, `preview`                                                               | `catalog.json` (root), embedded by `registry.cue`; `gitops_checks.py sync` derives the rest |
 
 Each repository keeps the file byte for byte as generated (prettier skips it). In `gitops` a catalog
 PR also carries what `scripts/gitops_checks.py sync` derives: `{}` version files of new apps, the

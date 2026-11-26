@@ -2,14 +2,16 @@
 
 **Owner:** platform; each team owns its `teams/<team>/` · GitHub: `homelab-selfuryon/catalog` · Status: **in use** (2026-11-26)
 
-The one place where teams and apps are declared. Everything a team or an app needs elsewhere — the
-GitHub team, repositories and environments, OpenBao roles, namespaces and quotas, Argo CD
-registration, `CODEOWNERS` lines — is generated from it, so onboarding is one PR here instead of a
-PR in every repository.
+The one place where teams and apps are declared: the facts every repository must agree on (which
+teams and apps exist, ownership, tier, lifecycle, environments, cluster). From them each repository
+builds what a team or an app gets by default — the GitHub team, repositories and environments,
+OpenBao roles, namespaces and quotas, Argo CD objects, `CODEOWNERS` lines — so onboarding is one PR
+here instead of a PR in every repository. Settings of one system (quotas, GitHub permission) live in
+that system's repository (decisions.md, 2026-11-26).
 
-- `schema/` — `#Team`, `#App`, quota sizes, defaults. A team file says only how it differs.
-- `teams/<team>/team.cue` — the team: description, size, quota overrides, GitHub permission.
-- `teams/<team>/<app>.cue` — one file per app: tier, lifecycle, environments, database, previews.
+- `schema/` — `#Team`, `#App`, defaults. A team file says only how it differs.
+- `teams/<team>/team.cue` — the team: description (`tenant: false` for a team without namespaces).
+- `teams/<team>/<app>.cue` — one file per app: description, tier, lifecycle, environments, cluster.
 - `catalog.cue` — imports every team package; a layout check keeps it and the directories in step.
 - `views.cue` — per repository, the fields it reads; it receives only that view.
 - `cue cmd generate` — writes `catalog.json`, defaults resolved, and `<repository>.json` per view: the

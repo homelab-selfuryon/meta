@@ -8,6 +8,8 @@ per environment — plus a small CUE render that turns the data into Flux `OCIRe
 published per cluster as a signed OCI artifact that Flux pulls.
 
 Changes arrive as PRs opened by the source repositories' release workflows (identity via octo-sts).
+The apps themselves come from the [catalog](catalog.md): `catalog.json` arrives as a `catalog/sync`
+PR with the `{}` version files and CODEOWNERS lines it implies.
 Staging version files have no code owner and are auto-merged after checks; prod version files are
 owned by the team. Rollback = revert.
 

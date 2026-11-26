@@ -133,13 +133,14 @@ registry has none.
 
 ```
 cue.mod/                           module github.com/homelab-selfuryon/gitops@v0
-schema/                            #Cluster, #App registration, #Version, render → Flux/Argo objects
+schema/                            #Cluster, #App, #Version, render → Flux/Argo objects
+catalog.json                       teams and apps from the catalog repository   ← catalog PRs (branch catalog/sync)
+registry.cue                       clusters (imports); apps built from catalog.json + version files
 clusters/<cluster>/cluster.cue     the cluster: name, artifact identities
 clusters/<cluster>/releases.json   {"version": "…", "digest": "sha256:…"} (platform artifact)   ← platform-components PRs
-apps/<team>/<app>/app.cue      registration: team, repo, cluster, preview on/off   ← platform-owned
 apps/<team>/<app>/staging.json     {"version": "v1.2.0", "digest": "sha256:…"}          ← release PR, auto-merged
 apps/<team>/<app>/prod.json        same shape                                          ← promote PR, team approves
-.github/CODEOWNERS                 * → platform; apps/*/*/staging.json → nobody; apps/<team>/*/prod.json → <team>
+.github/CODEOWNERS                 * → platform; apps/*/*/staging.json → nobody; apps/<team>/*/prod.json → <team> (generated block)
 .github/chainguard/*.sts.yaml      octo-sts trust policies
 ```
 
@@ -422,11 +423,15 @@ defaults resolved, and opens a PR carrying it in each repository below. Until th
 }
 ```
 
-| Repository            | Reads                                                                     | Replaces                                        |
-| --------------------- | ------------------------------------------------------------------------- | ----------------------------------------------- |
-| `platform-terraform`  | teams (GitHub team, permission), apps (repository, environments, OpenBao) | `teams.json`, `apps.json`                       |
-| `platform-components` | teams (quotas → namespaces, RBAC, AppProjects)                            | the data in `teams/<team>.cue`                  |
-| `gitops`              | apps (registration: name, team, repo, cluster, preview), teams            | hand-written `app.cue`, `CODEOWNERS` team lines |
+| Repository            | Reads                                                                     | Where                                                                                       |
+| --------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `platform-terraform`  | teams (GitHub team, permission), apps (repository, environments, OpenBao) | `catalog.json` (root), read by `github/` and `openbao/`                                     |
+| `platform-components` | teams (quotas → namespaces, RBAC, AppProjects)                            | `teams/catalog.json`, embedded by `teams/catalog.cue`                                       |
+| `gitops`              | apps (name, team, repo, cluster, preview), teams with apps                | `catalog.json` (root), embedded by `registry.cue`; `gitops_checks.py sync` derives the rest |
+
+Each repository keeps the file byte for byte as generated (prettier skips it). In `gitops` a catalog
+PR also carries what `scripts/gitops_checks.py sync` derives: `{}` version files of new apps, the
+removal of apps that left, and the generated `prod.json` block in `CODEOWNERS`.
 
 Order: merge and apply `platform-terraform` first (the GitHub team and repository must exist), then
 the others. Catalog CI does not wait for it.
@@ -444,24 +449,19 @@ config:
 flowchart TB
     subgraph platform["platform"]
         direction LR
-        pr["<b>PR to platform-terraform</b><br/>apps.json += notes-search<br/>(new team: teams.json,<br/>teams/&lt;team&gt;.cue)"]
-        gh["<b>tofu apply github/</b><br/>repository from template,<br/>properties, team access,<br/>environments, rulesets"]
-        bao["<b>tofu apply openbao/</b><br/>roles and policies<br/>&lt;team&gt;-&lt;env&gt;-&lt;app&gt;"]
-        pr --> gh
-        pr --> bao
+        pr["<b>PR to catalog</b><br/>teams/&lt;team&gt;/notes-search.cue<br/>(new team: team.cue)"]
+        tf["<b>platform-terraform PR</b><br/>merge, tofu apply github/ + openbao/:<br/>repository from template,<br/>properties, environments, roles"]
+        rest["<b>platform-components PR</b> (namespaces)<br/><b>gitops PR</b> ({} version files,<br/>CODEOWNERS; team == owner-team)"]
+        pr --> tf --> rest
     end
 
     subgraph team["team"]
         direction LR
         rename["<b>first PR</b><br/>renames the template<br/>(Cargo, deploy.cue)"]
-        register["<b>register.yaml</b><br/>app-register (kind=app)<br/>→ PR to gitops: app.cue"]
-        verify["<b>gitops verify</b><br/>team == owner-team,<br/>platform approves"]
-        rename --> register --> verify
     end
 
     platform --> team --> tag(["first tag → normal release flow"])
 ```
 
-`apps.json` and `teams.json` at the root of `platform-terraform` are read by both `github/` and
-`openbao/`. The custom properties `owner-team` and `kind` are added to the Actions OIDC token
+`catalog.json` at the root of `platform-terraform` is read by both `github/` and `openbao/`. The custom properties `owner-team` and `kind` are added to the Actions OIDC token
 (`repo_property_owner_team`, `repo_property_kind`), so octo-sts trust policies can require them.

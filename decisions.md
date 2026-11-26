@@ -51,6 +51,10 @@ generate` resolves it into one `catalog.json`. On merge, catalog CI opens a PR c
   new tag (2026-11-25), and `platform-terraform` cannot read CUE. ~~Keep it in
   `platform-terraform`~~ (HCL, applied by hand) ~~or `platform-kit`~~ (its releases are the app
   schema, not org data).
+  In gitops, `registry.cue` builds the apps from the file and embeds the version files by glob;
+  `{}` version files and the `CODEOWNERS` team lines are derived by a script there
+  (`gitops_checks.py sync`) and checked, so the `app.cue` registration and `register.yaml` went.
+  ~~Generate the gitops files in the catalog~~ — the catalog would have to know gitops' layout.
 - **2026-11-07 — `.github` repository kept** for what only that name does: org profile
   (`profile/README.md`), default community health files, workflow templates. It also holds the
   shared Renovate preset (`default.json`). Docs live in `meta`.
@@ -157,6 +161,7 @@ generate` resolves it into one `catalog.json`. On merge, catalog CI opens a PR c
   `environment:<env>`, so octo-sts issues the `gitops` token only to that workflow and environment.
   No required reviewers: the gate is the `gitops` PR.
 - **2026-11-08 — Onboarding an app: a PR to `platform-terraform`, then self-registration.**
+  _Superseded 2026-11-26 by the `catalog` (above): no `apps.json`, no registration PR._
   `apps.json` creates the repository from the template with its properties, environments,
   rulesets and OpenBao roles; the template's `register.yaml` then opens the `gitops` registration PR,
   which the platform approves. Rejected: an always-on onboarding service with a GitHub App

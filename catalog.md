@@ -1,6 +1,6 @@
 # catalog
 
-**Owner:** platform; each team owns its `teams/<team>/` · GitHub: `homelab-selfuryon/catalog` · Status: **planned** (2026-11-26)
+**Owner:** platform; each team owns its `teams/<team>/` · GitHub: `homelab-selfuryon/catalog` · Status: **in use** (2026-11-26)
 
 The one place where teams and apps are declared. Everything a team or an app needs elsewhere — the
 GitHub team, repositories and environments, OpenBao roles, namespaces and quotas, Argo CD
@@ -14,9 +14,11 @@ PR in every repository.
 - `cue cmd generate` — writes `catalog.json`, defaults resolved: the contract in
   [delivery.md](delivery.md#catalog-catalogjson).
 
-On merge to `main`, CI generates `catalog.json` and opens a PR with it in `platform-terraform`,
-`platform-components` and `gitops` (octo-sts tokens), without waiting for any of them. The owner
-merges `platform-terraform` first and applies it, then the others. Each repository's own checks
-validate what arrives.
+`platform-terraform`, `platform-components` and `gitops` read `catalog.json` (the table in
+[delivery.md](delivery.md#catalog-catalogjson)). Next: on merge to `main`, CI generates it and opens
+a PR with it in each of them (octo-sts tokens, branch `catalog/sync`), without waiting for any of
+them; until then the platform team copies `out/catalog.json` by hand. The owner merges
+`platform-terraform` first and applies it, then the others. Each repository's own checks validate
+what arrives.
 
 Decision: [decisions.md](decisions.md) (2026-11-26).

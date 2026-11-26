@@ -434,7 +434,8 @@ PR also carries what `scripts/gitops_checks.py sync` derives: `{}` version files
 removal of apps that left, and the generated `prod.json` block in `CODEOWNERS`.
 
 Order: merge and apply `platform-terraform` first (the GitHub team and repository must exist), then
-the others. Catalog CI does not wait for it.
+the others. Catalog CI (job `sync` in `ci.yaml`, octo-sts identity `catalog-sync`) opens the three
+PRs from the branch `catalog/sync` and does not wait for any of them.
 
 ## Flow: a new app (onboarding)
 

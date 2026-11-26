@@ -119,6 +119,6 @@ Why each fence exists: [gitops-architecture.md](gitops-architecture.md).
 | What                                | How                                                                                                                                       |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | Crates, actions, base image digests | Renovate, auto-merged when CI passes (majors and 0.x minors wait for a person)                                                            |
-| `platform-kit`, reusable workflows  | Renovate PRs; the reusable workflows are pinned by commit SHA                                                                             |
+| `platform-kit`, reusable workflows  | Renovate PRs; a `platform-kit` bump is `fix(deps)` and releases; workflows pinned by SHA                                                  |
 | `devenv.lock` (toolchains, tools)   | weekly `devenv update` PR (Monday 06:00 UTC), auto-merged when CI passes                                                                  |
 | Rust                                | `rust-toolchain.toml` and the Containerfile build image in one Renovate PR, Mondays after 09:00 UTC, once the version is in `devenv.lock` |

@@ -5,8 +5,10 @@
 OpenTofu for everything outside the cluster that has an API, one root module per provider:
 
 - `github/` — org settings, teams, repositories and their settings, environments (`staging`, `prod`
-  with tag-only deployment rules) for app repositories, rulesets, custom properties, Actions
-  policy.
+  with tag-only deployment rules, the ones the app has in `envs`) for app repositories, rulesets,
+  custom properties, Actions policy. Teams and apps come from the [catalog](catalog.md)
+  (`catalog.json`, a `catalog/sync` PR, merged and applied before the other repositories'); team
+  permissions are set here (`maintain` by default).
 - `openbao/` — Kubernetes auth, the `kv/` mount, one policy and role per app × environment, the
   platform component roles. Applied over the private access path.
 - later `cloudflare/` (zone, scoped API tokens).

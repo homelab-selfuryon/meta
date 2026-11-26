@@ -11,7 +11,9 @@ Everything cluster-scoped:
 - `registry/latest.json` — newest versions (Renovate).
 - `policies/` — Kyverno CEL policies (tenant restrictions, image verification, generated
   default-deny and LimitRange, Flux ServiceAccount binding).
-- `teams/*.cue` — onboarding: namespaces per environment, quotas, AppProjects, deploy
+- `teams/` — onboarding: which teams exist comes from the [catalog](catalog.md)
+  (`teams/catalog.json`, a `catalog/sync` PR); namespaces per environment, quotas (size `small` by
+  default in `schema.cue`, a team's own values in `teams/<team>.cue`), AppProjects, deploy
   ServiceAccounts, RBAC for the team group.
 
 Each cluster's components are grouped into sets (`rbac`, `system`, `platform`, `policy`,

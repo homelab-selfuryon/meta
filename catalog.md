@@ -1,6 +1,6 @@
 # catalog
 
-**Owner:** platform; each team owns its `teams/<team>/` · GitHub: `homelab-selfuryon/catalog` · Status: **in use** (2026-11-26)
+**Owner:** platform; each team owns its `teams/<team>.cue` · GitHub: `homelab-selfuryon/catalog` · Status: **in use** (2026-11-26)
 
 The one place where teams and apps are declared: the facts every repository must agree on (which
 teams and apps exist, ownership, tier, lifecycle, environments, cluster). From them each repository
@@ -10,9 +10,10 @@ here instead of a PR in every repository. Settings of one system (quotas, GitHub
 that system's repository (decisions.md, 2026-11-26).
 
 - `schema/` — `#Team`, `#App`, defaults. A team file says only how it differs.
-- `teams/<team>/team.cue` — the team: description (`tenant: false` for a team without namespaces).
-- `teams/<team>/<app>.cue` — one file per app: description, tier, lifecycle, environments, cluster.
-- `catalog.cue` — imports every team package; a layout check keeps it and the directories in step.
+- `teams/<team>.cue` — one file per team (package `teams`): the team (description; `tenant: false`
+  for a team without namespaces) and its apps (description, tier, lifecycle, environments,
+  cluster). A layout check makes each file hold only its own team.
+- `catalog.cue` — builds the catalog from the `teams` package.
 - `views.cue` — per repository, the fields it reads; it receives only that view.
 - `cue cmd generate` — writes `catalog.json`, defaults resolved, and `<repository>.json` per view: the
   contract in [delivery.md](delivery.md#catalog-catalogjson).

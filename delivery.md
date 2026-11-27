@@ -453,7 +453,7 @@ config:
 flowchart TB
     subgraph platform["platform"]
         direction LR
-        pr["<b>PR to catalog</b><br/>teams/&lt;team&gt;/notes-search.cue<br/>(new team: team.cue)"]
+        pr["<b>PR to catalog</b><br/>notes-search in teams/&lt;team&gt;.cue<br/>(new team: a new file)"]
         tf["<b>platform-terraform PR</b><br/>merge, tofu apply github/ + openbao/:<br/>repository from template,<br/>properties, environments, roles"]
         rest["<b>platform-components PR</b> (namespaces)<br/><b>gitops PR</b> ({} version files,<br/>CODEOWNERS; team == owner-team)"]
         pr --> tf --> rest

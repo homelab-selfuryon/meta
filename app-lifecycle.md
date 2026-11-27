@@ -45,8 +45,8 @@ flowchart TB
 
 ## 1. A new app
 
-Members cannot create repositories. A PR to [`catalog`](catalog.md) adds
-`teams/<team>/<app>.cue`; its `catalog.json` goes to `platform-terraform`, `platform-components`
+Members cannot create repositories. A PR to [`catalog`](catalog.md) adds the
+app to `teams/<team>.cue`; its `catalog.json` goes to `platform-terraform`, `platform-components`
 and `gitops`. The owner's `tofu apply` creates the repository from `rust-app-template` with its
 custom properties (`owner-team`, `kind=app`), team access, the `staging`/`prod` environments (tags
 `v*` only), the rulesets and the label `preview`, and in OpenBao the app's roles per environment;
@@ -54,7 +54,7 @@ the `gitops` PR adds the `{}` version files, and its checks compare the team wit
 `owner-team`. The team's first PR renames the template. Details:
 [delivery.md](delivery.md#flow-a-new-app-onboarding).
 
-A new team is `teams/<team>/team.cue` in `catalog`: the GitHub team, and in `platform-components`
+A new team is a new `teams/<team>.cue` in `catalog`: the GitHub team, and in `platform-components`
 its namespaces, quotas, AppProjects and deploy ServiceAccounts.
 
 ## 2. Pull requests

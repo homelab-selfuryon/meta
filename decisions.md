@@ -46,7 +46,9 @@ generate` resolves it into one `catalog.json`. On merge, catalog CI opens a PR c
   with one app took four or five PRs in three repositories (`teams.json`, `apps.json`,
   `teams/<team>.cue`, the registration PR, `CODEOWNERS`), in the right order, and nothing checked
   that they agreed. Teams change their own directory; `team.cue` and the schema need the platform
-  (quotas were here at first; the same day they moved to `platform-components`, next entry). ~~One hand-edited `catalog.json`~~ — one file for every team, no defaults, no
+  (quotas were here at first; the same day they moved to `platform-components`, next entry).
+  _2026-11-27: one file per team, `teams/<team>.cue`, with the team and its apps; the team owns the
+  whole file._ ~~One hand-edited `catalog.json`~~ — one file for every team, no defaults, no
   types. ~~A CUE module the repositories import, bumped by Renovate~~ — Renovate took hours to see a
   new tag (2026-11-25), and `platform-terraform` cannot read CUE. ~~Keep it in
   `platform-terraform`~~ (HCL, applied by hand) ~~or `platform-kit`~~ (its releases are the app
